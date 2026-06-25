@@ -1,0 +1,31 @@
+{
+  "id": "github-nousresearch-hermes-agent-2026-06-25",
+  "title": "NousResearch/hermes-agent",
+  "source": "github_trending",
+  "source_url": "https://github.com/NousResearch/hermes-agent",
+  "description": "Hermes Agent 是由 NousResearch 推出的 AI Agent 系统，定位为「与你一起成长的智能体」，支持 Anthropic、OpenAI 等多种 LLM 后端，可配合 Claude Code、Codex 等编码工具使用，拥有超过 20 万 star 和 3.6 万 fork，是当前最活跃的 AI Agent 开源项目之一。",
+  "summary": "NousResearch 的多 LLM 后端 AI Agent，支持持久化成长型智能体。",
+  "tags": ["agent-framework", "llm", "open-source", "enterprise-ready"],
+  "category": "AI Agent",
+  "status": "draft",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "analyzed_at": "2026-06-25T12:00:00+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [
+    "多 LLM 后端（Anthropic/OpenAI）实现模型无关的 Agent 运行时",
+    "'与你一起成长'的持久化 Agent 概念，区别于一次性无状态会话",
+    "202k star/36k fork/NousResearch 品牌背书"
+  ],
+  "risks": [],
+  "raw_path": "knowledge/raw/github-trending-2026-06-25.json",
+  "metadata": {
+    "stars": 202536,
+    "language": "Python",
+    "topics": ["ai", "ai-agent", "ai-agents", "anthropic", "chatgpt", "claude", "claude-code", "llm", "nous-research", "openai"],
+    "score": 9,
+    "score_reason": "改变格局：NousResearch 从模型训练延伸到 Agent 运行时，多后端架构+持久化成长型 Agent 概念开辟了 AI Agent 从工具到伙伴的演进路线。202k star 证明市场对通用 Agent 运行时的需求正在爆发。",
+    "analysis_status": "completed"
+  }
+}

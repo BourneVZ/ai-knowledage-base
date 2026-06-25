@@ -1,0 +1,31 @@
+{
+  "id": "github-raiyanyahya-recall-2026-06-25",
+  "title": "raiyanyahya/recall",
+  "source": "github_trending",
+  "source_url": "https://github.com/raiyanyahya/recall",
+  "description": "Recall 为 Claude Code 提供完全离线的持久化记忆能力，避免每次会话重复解释项目上下文，采用 TextRank 摘要与本地优先架构节省 Token 消耗，本周新发布即获 500+ star，直击 AI 编码助手「无记忆」的核心痛点。",
+  "summary": "Claude Code 离线持久记忆，TextRank 摘要本地优先架构，节省 Token。",
+  "tags": ["agent", "local-first", "lightweight", "open-source"],
+  "category": "AI Agent",
+  "status": "draft",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "analyzed_at": "2026-06-25T12:00:00+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [
+    "完全离线持久化记忆解决 AI 编码助手'无记忆'核心痛点",
+    "TextRank 摘要+本地优先架构，提供持久上下文不额外消耗 LLM Token",
+    "新发布 6 天获 508 star，精准解决 Claude Code 体验短板"
+  ],
+  "risks": [],
+  "raw_path": "knowledge/raw/github-trending-2026-06-25.json",
+  "metadata": {
+    "stars": 503,
+    "language": "Python",
+    "topics": ["ai", "ai-agents", "anthropic", "claude", "claude-code", "context", "developer-tools", "llm", "local-first", "memory", "offline", "privacy", "python", "summarization"],
+    "score": 6,
+    "score_reason": "值得了解：精准命中 Agent 记忆痛点的小而美工具。完全离线+零额外 Token 设计切中隐私和成本双重诉求。508 star/6天证明痛点真实，但 TextRank 方案相对基础。",
+    "analysis_status": "completed"
+  }
+}

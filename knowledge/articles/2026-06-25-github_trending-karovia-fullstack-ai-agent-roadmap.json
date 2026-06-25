@@ -1,0 +1,31 @@
+{
+  "id": "github-karovia-fullstack-ai-agent-roadmap-2026-06-25",
+  "title": "Karovia/fullstack-ai-agent-roadmap",
+  "source": "github_trending",
+  "source_url": "https://github.com/Karovia/fullstack-ai-agent-roadmap",
+  "description": "从零基础到 AI Agent 全栈工程师的中文学习路线图，包含 110 个详细教程、58 万字内容和 400+ 精选 GitHub 项目，覆盖 LangGraph、MCP、FastAPI、React 等技术栈，Obsidian 友好格式，本周新发布即获 185 star。",
+  "summary": "AI Agent 全栈学习路线图，110 教程 58 万字 400+ 项目，Obsidian 友好。",
+  "tags": ["agent", "beginner-friendly", "tutorial"],
+  "category": "教学资源",
+  "status": "draft",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "analyzed_at": "2026-06-25T12:00:00+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [
+    "全栈覆盖 LangGraph/MCP/FastAPI/React/Python/JavaScript 的完整学习路径",
+    "110 教程/58 万字/400+ 精选 GitHub 项目的大规模中文内容整合",
+    "Obsidian 友好格式，降低知识管理和笔记整理的技术门槛"
+  ],
+  "risks": [],
+  "raw_path": "knowledge/raw/github-trending-2026-06-25.json",
+  "metadata": {
+    "stars": 185,
+    "language": null,
+    "topics": ["ai", "ai-agent", "claude", "fullstack", "langgraph", "learning-roadmap", "llm", "mcp", "python", "react", "tutorial"],
+    "score": 5,
+    "score_reason": "值得了解：AI Agent 领域最大规模的中文系统性学习资源，内容体量（58万字/400+项目）具有独特性。但新发布仅 187 star，社区反馈有限，内容质量有待时间验证。",
+    "analysis_status": "completed"
+  }
+}

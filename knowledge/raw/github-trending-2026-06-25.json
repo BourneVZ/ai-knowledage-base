@@ -1,0 +1,127 @@
+{
+  "source": "github_trending",
+  "skill": "github-trending",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "items": [
+    {
+      "name": "affaan-m/ECC",
+      "url": "https://github.com/affaan-m/ECC",
+      "summary": "ECC 是面向 Claude Code、Codex、Cursor 等 AI 编程工具的 Agent Harness 性能优化系统，提供技能、直觉、记忆、安全与研究优先的智能体开发框架，支持 MCP 协议，在 GitHub 上以 22 万 star 成为最热门的 AI Agent 开发基础设施项目之一。",
+      "stars": 221403,
+      "language": "JavaScript",
+      "topics": ["ai-agents", "anthropic", "claude", "claude-code", "developer-tools", "llm", "mcp", "productivity"]
+    },
+    {
+      "name": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "summary": "Hermes Agent 是由 NousResearch 推出的 AI Agent 系统，定位为「与你一起成长的智能体」，支持 Anthropic、OpenAI 等多种 LLM 后端，可配合 Claude Code、Codex 等编码工具使用，拥有超过 20 万 star 和 3.6 万 fork，是当前最活跃的 AI Agent 开源项目之一。",
+      "stars": 202536,
+      "language": "Python",
+      "topics": ["ai", "ai-agent", "ai-agents", "anthropic", "chatgpt", "claude", "claude-code", "llm", "nous-research", "openai"]
+    },
+    {
+      "name": "Significant-Gravitas/AutoGPT",
+      "url": "https://github.com/Significant-Gravitas/AutoGPT",
+      "summary": "AutoGPT 是 AI 自主智能体领域的开创性项目，致力于为每个人提供可访问、可构建的 AI 工具，支持 Claude、GPT、LLaMA 等多种模型，以 Python 实现，迄今获得超过 18.5 万 star，是自主 AI Agent 方向的标杆项目。",
+      "stars": 185158,
+      "language": "Python",
+      "topics": ["agentic-ai", "agents", "ai", "artificial-intelligence", "autonomous-agents", "claude", "gpt", "llama-api", "llm", "openai", "python"]
+    },
+    {
+      "name": "ollama/ollama",
+      "url": "https://github.com/ollama/ollama",
+      "summary": "Ollama 是最流行的本地 LLM 推理运行工具，支持 DeepSeek、Qwen、GLM、Gemma、Mistral 等主流开源模型的一键部署与运行，以 Go 语言实现，拥有超过 17.4 万 star，是本地化 AI 推理的事实标准工具。",
+      "stars": 174885,
+      "language": "Go",
+      "topics": ["deepseek", "gemma", "glm", "gpt-oss", "llama", "llm", "mistral", "ollama", "qwen"]
+    },
+    {
+      "name": "huggingface/transformers",
+      "url": "https://github.com/huggingface/transformers",
+      "summary": "Hugging Face Transformers 是业界最主流的预训练模型框架，支持文本、视觉、音频及多模态模型的推理与训练，涵盖 DeepSeek、Qwen、GLM、Gemma 等最新模型架构，以 PyTorch 为核心，拥有超过 16 万 star，是 LLM 和 NLP 领域的基础设施级项目。",
+      "stars": 161902,
+      "language": "Python",
+      "topics": ["deep-learning", "deepseek", "gemma", "glm", "llm", "machine-learning", "natural-language-processing", "nlp", "pretrained-models", "pytorch", "qwen", "transformer", "vlm"]
+    },
+    {
+      "name": "langgenius/dify",
+      "url": "https://github.com/langgenius/dify",
+      "summary": "Dify 是面向生产环境的 Agentic 工作流开发平台，支持可视化编排 AI 应用、RAG 管线、Agent 策略和 MCP 协议集成，兼容 OpenAI、Gemini 等多种 LLM，以 TypeScript 和 Python 构建，拥有超过 14.6 万 star，是 AI 应用开发平台的领军项目。",
+      "stars": 146524,
+      "language": "TypeScript",
+      "topics": ["agent", "agentic-ai", "agentic-framework", "agentic-workflow", "ai", "genai", "gpt", "llm", "low-code", "mcp", "openai", "orchestration", "python", "rag", "workflow"]
+    },
+    {
+      "name": "open-webui/open-webui",
+      "url": "https://github.com/open-webui/open-webui",
+      "summary": "Open WebUI 是最受欢迎的自托管 LLM 聊天交互界面，支持 Ollama 和 OpenAI 兼容 API，提供类 ChatGPT 的用户体验，可完全离线运行，拥有超过 14 万 star，是本地部署大语言模型对话服务的首选前端方案。",
+      "stars": 142942,
+      "language": "TypeScript",
+      "topics": ["ai", "llm", "ollama", "openai"]
+    },
+    {
+      "name": "shareAI-lab/learn-claude-code",
+      "url": "https://github.com/shareAI-lab/learn-claude-code",
+      "summary": "learn-claude-code 是一个从零开始构建 Claude Code 风格 Agent Harness 的教学项目，以「Bash is all you need」为理念，用 Python 实现 Agent 循环、工具调用和记忆管理等核心机制，拥有超过 6.8 万 star，是学习 AI Agent 底层原理的热门教程。",
+      "stars": 68356,
+      "language": "Python",
+      "topics": ["agent", "agent-development", "ai-agent", "claude", "claude-code", "educational", "llm", "python", "teaching", "tutorial"]
+    },
+    {
+      "name": "santifer/career-ops",
+      "url": "https://github.com/santifer/career-ops",
+      "summary": "Career-Ops 是基于 Claude Code 构建的 AI 驱动求职系统，包含 14 种技能模式、Go 语言仪表盘、PDF 生成和批处理功能，将 AI Agent 应用于职业发展场景，拥有超过 5.5 万 star，展示了 AI Agent 在垂直领域的创新应用。",
+      "stars": 55613,
+      "language": "JavaScript",
+      "topics": ["ai-agent", "anthropic", "automation", "career", "claude", "claude-code", "cli", "golang", "job-search", "open-source"]
+    },
+    {
+      "name": "ZhuLinsen/daily_stock_analysis",
+      "url": "https://github.com/ZhuLinsen/daily_stock_analysis",
+      "summary": "LLM 驱动的多市场股票智能分析系统，集成多源行情数据、实时新闻、决策看板与自动推送功能，支持零成本定时运行，以 Python 实现，拥有近 5 万 star，是 LLM 在量化金融领域应用的代表性开源项目。",
+      "stars": 49185,
+      "language": "Python",
+      "topics": ["ai-agent", "aigc", "llm", "quant", "quantitative-finance", "quantitative-trading"]
+    },
+    {
+      "name": "CherryHQ/cherry-studio",
+      "url": "https://github.com/CherryHQ/cherry-studio",
+      "summary": "Cherry Studio 是集成智能聊天、自主 Agent 和 300+ 助手的 AI 生产力工作室，统一接入前沿 LLM，支持 Agent 技能和 Claude Code、Codex 等编码工具集成，以 TypeScript 构建，拥有超过 4.7 万 star。",
+      "stars": 47781,
+      "language": "TypeScript",
+      "topics": ["agent-skills", "ai-agent", "awesome-skills", "claude-code", "codex", "deepseek", "skills", "vibe-coding"]
+    },
+    {
+      "name": "zhayujie/CowAgent",
+      "url": "https://github.com/zhayujie/CowAgent",
+      "summary": "CowAgent（原 chatgpt-on-wechat）是开源超级 AI 助手与 Agent Harness，支持任务规划、工具技能运行、记忆与知识自进化，兼容多模型、多渠道部署，一键安装，以 Python 实现，拥有超过 4.5 万 star，是多模态 AI Agent 应用的成熟方案。",
+      "stars": 45601,
+      "language": "Python",
+      "topics": ["ai", "ai-agent", "ai-agents", "claude", "claude-code", "codex", "deepseek", "harness", "llm", "mcp", "multi-agent", "openai", "skills"]
+    },
+    {
+      "name": "sums001/Windows-Copilot-API",
+      "url": "https://github.com/sums001/Windows-Copilot-API",
+      "summary": "Windows Copilot API 通过逆向工程将 Windows Copilot 封装为 OpenAI 兼容 API，无需 API Key 或付费即可访问 GPT-4、GPT-5 等模型，本周新发布即获近 700 star，体现了开发者对降低 AI 使用门槛的强烈需求。",
+      "stars": 698,
+      "language": "Python",
+      "topics": ["ai", "ai-agents", "api", "copilot", "llm", "microsoft-copilot", "openai"]
+    },
+    {
+      "name": "raiyanyahya/recall",
+      "url": "https://github.com/raiyanyahya/recall",
+      "summary": "Recall 为 Claude Code 提供完全离线的持久化记忆能力，避免每次会话重复解释项目上下文，采用 TextRank 摘要与本地优先架构节省 Token 消耗，本周新发布即获 500+ star，直击 AI 编码助手「无记忆」的核心痛点。",
+      "stars": 503,
+      "language": "Python",
+      "topics": ["ai", "ai-agents", "anthropic", "claude", "claude-code", "context", "developer-tools", "llm", "local-first", "memory", "offline", "privacy", "python", "summarization"]
+    },
+    {
+      "name": "Karovia/fullstack-ai-agent-roadmap",
+      "url": "https://github.com/Karovia/fullstack-ai-agent-roadmap",
+      "summary": "从零基础到 AI Agent 全栈工程师的中文学习路线图，包含 110 个详细教程、58 万字内容和 400+ 精选 GitHub 项目，覆盖 LangGraph、MCP、FastAPI、React 等技术栈，Obsidian 友好格式，本周新发布即获 185 star。",
+      "stars": 185,
+      "language": null,
+      "topics": ["ai", "ai-agent", "claude", "fullstack", "langgraph", "learning-roadmap", "llm", "mcp", "python", "react", "tutorial"]
+    }
+  ]
+}

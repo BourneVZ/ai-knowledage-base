@@ -1,0 +1,31 @@
+{
+  "id": "github-langgenius-dify-2026-06-25",
+  "title": "langgenius/dify",
+  "source": "github_trending",
+  "source_url": "https://github.com/langgenius/dify",
+  "description": "Dify 是面向生产环境的 Agentic 工作流开发平台，支持可视化编排 AI 应用、RAG 管线、Agent 策略和 MCP 协议集成，兼容 OpenAI、Gemini 等多种 LLM，以 TypeScript 和 Python 构建，拥有超过 14.6 万 star，是 AI 应用开发平台的领军项目。",
+  "summary": "生产级 Agentic 工作流平台，可视化编排 RAG 管线与 MCP Agent 策略。",
+  "tags": ["agent-framework", "workflow", "rag", "open-source", "enterprise-ready"],
+  "category": "Agent 工作流",
+  "status": "draft",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "analyzed_at": "2026-06-25T12:00:00+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [
+    "可视化+低代码的 Agentic 工作流编排，显著降低 AI 应用开发门槛",
+    "RAG 管线+MCP 协议的原生集成，打通检索增强生成与标准化工具调用",
+    "TypeScript+Python 双语言架构/146k star，企业级生产验证"
+  ],
+  "risks": [],
+  "raw_path": "knowledge/raw/github-trending-2026-06-25.json",
+  "metadata": {
+    "stars": 146524,
+    "language": "TypeScript",
+    "topics": ["agent", "agentic-ai", "agentic-framework", "agentic-workflow", "ai", "genai", "gpt", "llm", "low-code", "mcp", "openai", "orchestration", "python", "rag", "workflow"],
+    "score": 8,
+    "score_reason": "直接有帮助：Agentic 工作流开发的事实标准平台，可视化编排+MCP 集成+RAG 管线三位一体解决 AI 应用工程落地痛点。146k star 证明企业级可用性得到广泛验证。",
+    "analysis_status": "completed"
+  }
+}

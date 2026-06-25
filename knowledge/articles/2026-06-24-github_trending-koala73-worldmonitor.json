@@ -1,0 +1,30 @@
+{
+  "id": "github_trending-koala73-worldmonitor-2026-06-24",
+  "title": "koala73/worldmonitor",
+  "source": "github_trending",
+  "source_url": "https://github.com/koala73/worldmonitor",
+  "description": "GitHub Trending 热门仓库，59389 stars。基于 AI 的实时全球情报监控仪表盘。",
+  "summary": "基于 AI 的实时全球情报监控仪表盘，整合多源新闻聚合、地缘政治态势感知和基础设施追踪，利用 AI 进行多源信息自动聚合分类和异常检测。",
+  "tags": ["ai", "intelligence", "dashboard", "monitoring", "news-aggregation"],
+  "category": "AI 应用",
+  "status": "draft",
+  "collected_at": "2026-06-24T10:30:00+08:00",
+  "analyzed_at": "2026-06-24T10:45:00+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": null,
+  "key_points": [
+    "实时多源信息聚合与 AI 自动分析",
+    "覆盖新闻/地缘政治/基础设施多维度"
+  ],
+  "risks": [
+    "信息准确性依赖 AI 分析质量",
+    "多源数据聚合可能存在延迟和偏差"
+  ],
+  "raw_path": "knowledge/raw/github-trending-2026-06-24.json",
+  "metadata": {
+    "stars": 59389,
+    "owner": "koala73",
+    "repo": "worldmonitor"
+  }
+}

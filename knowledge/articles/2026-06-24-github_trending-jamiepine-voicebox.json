@@ -1,0 +1,30 @@
+{
+  "id": "github_trending-jamiepine-voicebox-2026-06-24",
+  "title": "jamiepine/voicebox",
+  "source": "github_trending",
+  "source_url": "https://github.com/jamiepine/voicebox",
+  "description": "GitHub Trending 热门仓库，33532 stars。开源 AI 语音工作室，提供语音克隆、口述转写和语音创作功能。",
+  "summary": "开源 AI 语音工作室，提供语音克隆、口述转写和语音创作功能。利用 AI TTS 和 ASR 技术，支持创建高质量合成语音内容。",
+  "tags": ["ai", "speech", "voice-cloning", "tts", "audio"],
+  "category": "AI 应用",
+  "status": "draft",
+  "collected_at": "2026-06-24T10:30:00+08:00",
+  "analyzed_at": "2026-06-24T10:45:00+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": null,
+  "key_points": [
+    "同时覆盖语音克隆和口述转写一体化",
+    "开源可自部署数据隐私可控"
+  ],
+  "risks": [
+    "语音克隆可能涉及伦理和隐私风险",
+    "语音合成质量可能不如商业方案"
+  ],
+  "raw_path": "knowledge/raw/github-trending-2026-06-24.json",
+  "metadata": {
+    "stars": 33532,
+    "owner": "jamiepine",
+    "repo": "voicebox"
+  }
+}

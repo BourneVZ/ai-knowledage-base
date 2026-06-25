@@ -1,0 +1,31 @@
+{
+  "id": "github-huggingface-transformers-2026-06-25",
+  "title": "huggingface/transformers",
+  "source": "github_trending",
+  "source_url": "https://github.com/huggingface/transformers",
+  "description": "Hugging Face Transformers 是业界最主流的预训练模型框架，支持文本、视觉、音频及多模态模型的推理与训练，涵盖 DeepSeek、Qwen、GLM、Gemma 等最新模型架构，以 PyTorch 为核心，拥有超过 16 万 star，是 LLM 和 NLP 领域的基础设施级项目。",
+  "summary": "PyTorch 预训练模型框架，统一 API 支持文本视觉音频多模态推理训练。",
+  "tags": ["fine-tuning", "llm", "multimodal", "inference", "open-source"],
+  "category": "LLM 框架",
+  "status": "draft",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "analyzed_at": "2026-06-25T12:00:00+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [
+    "业界最完整的模型定义框架，覆盖 DeepSeek/Qwen/GLM/Gemma 等所有主流架构",
+    "统一 API 实现推理与训练的代码复用，极大降低模型切换和迁移成本",
+    "Apache 2.0/161k star，LLM 与 NLP 领域的基础设施级项目"
+  ],
+  "risks": [],
+  "raw_path": "knowledge/raw/github-trending-2026-06-25.json",
+  "metadata": {
+    "stars": 161902,
+    "language": "Python",
+    "topics": ["deep-learning", "deepseek", "gemma", "glm", "llm", "machine-learning", "natural-language-processing", "nlp", "pretrained-models", "pytorch", "qwen", "transformer", "vlm"],
+    "score": 8,
+    "score_reason": "直接有帮助：LLM/NLP 领域不可替代的基础设施，几乎所有模型微调、部署和实验工作流的基石。Apache 2.0+统一 API 设计使其在学术和工业界均有极高实用价值。",
+    "analysis_status": "completed"
+  }
+}

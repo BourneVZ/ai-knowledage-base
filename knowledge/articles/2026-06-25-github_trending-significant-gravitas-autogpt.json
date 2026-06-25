@@ -1,0 +1,31 @@
+{
+  "id": "github-significant-gravitas-autogpt-2026-06-25",
+  "title": "Significant-Gravitas/AutoGPT",
+  "source": "github_trending",
+  "source_url": "https://github.com/Significant-Gravitas/AutoGPT",
+  "description": "AutoGPT 是 AI 自主智能体领域的开创性项目，致力于为每个人提供可访问、可构建的 AI 工具，支持 Claude、GPT、LLaMA 等多种模型，以 Python 实现，迄今获得超过 18.5 万 star，是自主 AI Agent 方向的标杆项目。",
+  "summary": "自主 AI Agent 标杆，支持多模型后端，自主任务规划与工具调用执行。",
+  "tags": ["agent-framework", "llm", "open-source", "automation"],
+  "category": "AI Agent",
+  "status": "draft",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "analyzed_at": "2026-06-25T12:00:00+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [
+    "自主 Agent 领域开创性项目，定义了 agentic AI 的早期范式",
+    "多模型后端支持（Claude/GPT/LLaMA），避免单模型锁定风险",
+    "185k star/46k fork，拥有最大的 Agent 社区生态"
+  ],
+  "risks": [],
+  "raw_path": "knowledge/raw/github-trending-2026-06-25.json",
+  "metadata": {
+    "stars": 185158,
+    "language": "Python",
+    "topics": ["agentic-ai", "agents", "ai", "artificial-intelligence", "autonomous-agents", "claude", "gpt", "llama-api", "llm", "openai", "python"],
+    "score": 7,
+    "score_reason": "直接有帮助：自主 Agent 领域的历史标杆，185k star 的社区生态提供了丰富的参考案例和学习材料。但近半年核心架构创新放缓，从前沿突破转型为基础参考，当前价值更多在教育和生态层面。",
+    "analysis_status": "completed"
+  }
+}

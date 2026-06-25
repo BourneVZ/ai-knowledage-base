@@ -1,0 +1,31 @@
+{
+  "id": "github-ollama-ollama-2026-06-25",
+  "title": "ollama/ollama",
+  "source": "github_trending",
+  "source_url": "https://github.com/ollama/ollama",
+  "description": "Ollama 是最流行的本地 LLM 推理运行工具，支持 DeepSeek、Qwen、GLM、Gemma、Mistral 等主流开源模型的一键部署与运行，以 Go 语言实现，拥有超过 17.4 万 star，是本地化 AI 推理的事实标准工具。",
+  "summary": "Go 实现的本地 LLM 推理工具，一键部署 DeepSeek/Qwen/GLM 等模型。",
+  "tags": ["inference", "llm", "lightweight", "open-source"],
+  "category": "推理引擎",
+  "status": "draft",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "analyzed_at": "2026-06-25T12:00:00+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [
+    "Go 语言实现+单二进制部署，极致简化本地 LLM 推理的运行门槛",
+    "持续集成最新模型：Kimi-K2.6、GLM-5.1、MiniMax 等前沿模型即时可用",
+    "174k star/16k fork，本地 LLM 推理的事实标准工具"
+  ],
+  "risks": [],
+  "raw_path": "knowledge/raw/github-trending-2026-06-25.json",
+  "metadata": {
+    "stars": 174885,
+    "language": "Go",
+    "topics": ["deepseek", "gemma", "glm", "gpt-oss", "llama", "llm", "mistral", "ollama", "qwen"],
+    "score": 8,
+    "score_reason": "直接有帮助：本地 LLM 推理的事实标准工具，174k star 的生态号召力和持续更新的模型支持使其成为开发者不可替代的基础设施。Go 实现的轻量级+MIT 许可是其核心竞争壁垒。",
+    "analysis_status": "completed"
+  }
+}

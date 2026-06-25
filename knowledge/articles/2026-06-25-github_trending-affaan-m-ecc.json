@@ -1,0 +1,31 @@
+{
+  "id": "github-affaan-m-ecc-2026-06-25",
+  "title": "affaan-m/ECC",
+  "source": "github_trending",
+  "source_url": "https://github.com/affaan-m/ECC",
+  "description": "ECC 是面向 Claude Code、Codex、Cursor 等 AI 编程工具的 Agent Harness 性能优化系统，提供技能、直觉、记忆、安全与研究优先的智能体开发框架，支持 MCP 协议，在 GitHub 上以 22 万 star 成为最热门的 AI Agent 开发基础设施项目之一。",
+  "summary": "Agent Harness 性能优化系统，为多 IDE 提供技能记忆安全统一层，支持 MCP。",
+  "tags": ["agent-framework", "code-generation", "open-source", "high-performance"],
+  "category": "AI Agent",
+  "status": "draft",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "analyzed_at": "2026-06-25T12:00:00+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [
+    "统一的 Agent Harness 层，跨 Claude Code/Codex/Cursor/Opencode 多工具运行",
+    "MCP 协议原生支持，实现标准化工具集成与 Agent 间互操作",
+    "221k star/6个月增长/MIT 许可，历史级增长速度"
+  ],
+  "risks": [],
+  "raw_path": "knowledge/raw/github-trending-2026-06-25.json",
+  "metadata": {
+    "stars": 221403,
+    "language": "JavaScript",
+    "topics": ["ai-agents", "anthropic", "claude", "claude-code", "developer-tools", "llm", "mcp", "productivity"],
+    "score": 9,
+    "score_reason": "改变格局：定义 Agent Harness 新范式，将 Agent 性能优化、技能管理和安全策略整合为统一中间层，221k star 的爆炸增长（6个月内）证明跨 IDE 的 Agent 基础设施已成为开发者关键需求。",
+    "analysis_status": "completed"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "github_trending-asgeirtj-system-prompts-leaks-2026-06-24",
+  "title": "asgeirtj/system_prompts_leaks",
+  "source": "github_trending",
+  "source_url": "https://github.com/asgeirtj/system_prompts_leaks",
+  "description": "GitHub Trending 热门仓库，45554 stars。汇集 Claude、ChatGPT/GPT、Gemini、Grok、Cursor、Copilot 等主流 AI 模型系统提示词泄露合集。",
+  "summary": "汇集 Claude、ChatGPT/GPT、Gemini、Grok、Cursor、Copilot 等主流 AI 模型系统提示词泄露合集。揭示 AI 厂商的行为边界设定、安全策略和内容约束。",
+  "tags": ["ai", "llm", "prompt-engineering", "security", "system-prompt", "research"],
+  "category": "提示工程",
+  "status": "draft",
+  "collected_at": "2026-06-24T10:30:00+08:00",
+  "analyzed_at": "2026-06-24T10:45:00+08:00",
+  "published_at": null,
+  "innovation_score": 8,
+  "difficulty_score": null,
+  "key_points": [
+    "覆盖几乎所有主流 AI 模型和编码助手",
+    "直接揭示安全策略和行为引导机制",
+    "对提示工程研究和 LLM 安全分析具有不可替代的一手资料价值"
+  ],
+  "risks": [
+    "提示词可能过时或被厂商更新",
+    "涉及敏感信息需注意合规风险"
+  ],
+  "raw_path": "knowledge/raw/github-trending-2026-06-24.json",
+  "metadata": {
+    "stars": 45554,
+    "owner": "asgeirtj",
+    "repo": "system_prompts_leaks"
+  }
+}

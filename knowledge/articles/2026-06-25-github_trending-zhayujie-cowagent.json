@@ -1,0 +1,31 @@
+{
+  "id": "github-zhayujie-cowagent-2026-06-25",
+  "title": "zhayujie/CowAgent",
+  "source": "github_trending",
+  "source_url": "https://github.com/zhayujie/CowAgent",
+  "description": "CowAgent（原 chatgpt-on-wechat）是开源超级 AI 助手与 Agent Harness，支持任务规划、工具技能运行、记忆与知识自进化，兼容多模型、多渠道部署，一键安装，以 Python 实现，拥有超过 4.5 万 star，是多模态 AI Agent 应用的成熟方案。",
+  "summary": "开源 Agent Harness，支持任务规划工具技能运行与记忆自进化。",
+  "tags": ["agent-framework", "chatbot", "open-source", "automation"],
+  "category": "AI Agent",
+  "status": "draft",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "analyzed_at": "2026-06-25T12:00:00+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [
+    "从 chatgpt-on-wechat 演化 4 年持续迭代的成熟 Agent 方案",
+    "Agent Harness 架构+多 Agent 协作+MCP+多渠道部署的完整分发体系",
+    "45k star/MIT 许可/16 open issues，成熟稳定的生产级 Agent 系统"
+  ],
+  "risks": [],
+  "raw_path": "knowledge/raw/github-trending-2026-06-25.json",
+  "metadata": {
+    "stars": 45601,
+    "language": "Python",
+    "topics": ["ai", "ai-agent", "ai-agents", "claude", "claude-code", "codex", "deepseek", "harness", "llm", "mcp", "multi-agent", "openai", "skills"],
+    "score": 7,
+    "score_reason": "直接有帮助：国内 AI Agent 生态中最成熟的方案之一，4年历史+45k star+仅 16 个 open issues 证明其成熟稳定。多 Agent 协作+MCP+多渠道部署组合解决 Agent 分发实际痛点。",
+    "analysis_status": "completed"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "github-santifer-career-ops-2026-06-25",
+  "title": "santifer/career-ops",
+  "source": "github_trending",
+  "source_url": "https://github.com/santifer/career-ops",
+  "description": "Career-Ops 是基于 Claude Code 构建的 AI 驱动求职系统，包含 14 种技能模式、Go 语言仪表盘、PDF 生成和批处理功能，将 AI Agent 应用于职业发展场景，拥有超过 5.5 万 star，展示了 AI Agent 在垂直领域的创新应用。",
+  "summary": "基于 Claude Code 的 AI 求职系统，14 种技能模式自动化求职全流程。",
+  "tags": ["agent", "automation", "open-source", "workflow"],
+  "category": "AI Agent",
+  "status": "draft",
+  "collected_at": "2026-06-25T10:30:00+08:00",
+  "analyzed_at": "2026-06-25T12:00:00+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [
+    "将 AI Agent 应用于求职垂直场景的完整产品化案例",
+    "14 种技能模式+Go 仪表盘+PDF 生成的异构多组件架构设计",
+    "55k star/2.5个月增长/MIT 许可，证明垂直 Agent 场景需求强劲"
+  ],
+  "risks": [],
+  "raw_path": "knowledge/raw/github-trending-2026-06-25.json",
+  "metadata": {
+    "stars": 55613,
+    "language": "JavaScript",
+    "topics": ["ai-agent", "anthropic", "automation", "career", "claude", "claude-code", "cli", "golang", "job-search", "open-source"],
+    "score": 6,
+    "score_reason": "值得了解：垂直 Agent 应用的产品化标杆案例，将通用 Agent 能力与求职场景深度结合。55k star 的增速表明垂直 Agent 有巨大市场空间，但领域特定性强。",
+    "analysis_status": "completed"
+  }
+}
