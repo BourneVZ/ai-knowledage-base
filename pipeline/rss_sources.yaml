@@ -1,0 +1,76 @@
+# RSS 数据源配置 — AI 知识库采集管线
+# ============================================================
+# 字段说明:
+#   name     — 唯一标识，用于日志和文件名
+#   url      — RSS/Atom feed 地址
+#   category — 来源分类
+#   enabled  — 是否启用采集 (true/false)
+# ============================================================
+
+sources:
+
+  # ---- 综合技术 ----
+  - name: hn_ai
+    url: "https://hnrss.org/best?q=AI+OR+LLM+OR+agent+OR+machine+learning+OR+deepseek+OR+openai+OR+transformer+OR+rag"
+    category: 综合技术
+    enabled: true
+
+  - name: lobsters_ai
+    url: "https://lobste.rs/t/ai.rss"
+    category: 综合技术
+    enabled: true
+
+  # ---- AI 研究 ----
+  - name: arxiv_cs_ai
+    url: "https://rss.arxiv.org/rss/cs.AI"
+    category: AI研究
+    enabled: false
+
+  # ---- 公司博客 ----
+  - name: openai_blog
+    url: "https://openai.com/blog/rss.xml"
+    category: 公司博客
+    enabled: true
+
+  - name: anthropic_research
+    url: "https://www.anthropic.com/research/feed"
+    category: 公司博客
+    enabled: false
+
+  - name: huggingface_blog
+    url: "https://huggingface.co/blog/feed.xml"
+    category: 公司博客
+    enabled: true
+
+  - name: google_ai_blog
+    url: "https://blog.google/technology/ai/rss/"
+    category: 公司博客
+    enabled: true
+
+  # ---- 社区讨论 ----
+  - name: reddit_ml
+    url: "https://www.reddit.com/r/MachineLearning/hot.rss"
+    category: 社区讨论
+    enabled: true
+
+  - name: reddit_localllama
+    url: "https://www.reddit.com/r/LocalLLaMA/hot.rss"
+    category: 社区讨论
+    enabled: true
+
+  # ---- 科技媒体 ----
+  - name: theverge_ai
+    url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"
+    category: 科技媒体
+    enabled: true
+
+  # ---- 中文社区 ----
+  - name: jiqizhixin
+    url: "https://www.jiqizhixin.com/rss"
+    category: 中文社区
+    enabled: false
+
+  - name: qbitai
+    url: "https://www.qbitai.com/feed"
+    category: 中文社区
+    enabled: false

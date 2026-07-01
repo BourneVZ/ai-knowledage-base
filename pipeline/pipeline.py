@@ -29,6 +29,11 @@ from typing import Any, TypedDict
 import httpx
 
 try:
+    import yaml  # type: ignore[import-untyped]
+except ImportError:
+    yaml = None  # type: ignore[assignment]
+
+try:
     from .model_client import chat_with_retry  # type: ignore[assignment]
 except ImportError:
     from model_client import chat_with_retry  # type: ignore[no-redef]
@@ -60,6 +65,65 @@ RSS_SOURCES: dict[str, str] = {
     "hn": "https://hnrss.org/newest?q=ai+OR+llm+OR+agent+OR+machine+learning",
     "arxiv": "https://rss.arxiv.org/rss/cs.AI",
 }
+
+DEFAULT_RSS_CONFIG: Path = Path(__file__).resolve().parent / "rss_sources.yaml"
+
+
+def _load_rss_config(yaml_path: Path | None = None) -> dict[str, str]:
+    """从 YAML 配置文件加载启用的 RSS 源。
+
+    若 PyYAML 未安装或文件缺失，回退到硬编码默认值。
+
+    Args:
+        yaml_path: YAML 配置文件路径，为 ``None`` 时使用默认路径。
+
+    Returns:
+        RSS 源名称到 URL 的映射。
+    """
+    if yaml is None:
+        logger.info("PyYAML 未安装，使用内置默认 RSS 源")
+        return dict(RSS_SOURCES)
+
+    path = yaml_path or DEFAULT_RSS_CONFIG
+    if not path.is_file():
+        logger.warning("RSS 配置文件 %s 不存在，使用内置默认 RSS 源", path)
+        return dict(RSS_SOURCES)
+
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            data: dict[str, object] = yaml.safe_load(f)
+    except Exception as e:
+        logger.warning("RSS 配置文件解析失败: %s，使用内置默认 RSS 源", e)
+        return dict(RSS_SOURCES)
+
+    if not isinstance(data, dict):
+        logger.warning("RSS 配置文件格式错误，使用内置默认 RSS 源")
+        return dict(RSS_SOURCES)
+
+    raw_sources: object = data.get("sources")
+    if not isinstance(raw_sources, list):
+        logger.warning("RSS 配置缺少 sources 列表，使用内置默认 RSS 源")
+        return dict(RSS_SOURCES)
+
+    enabled: dict[str, str] = {}
+    for src in raw_sources:
+        if not isinstance(src, dict):
+            continue
+        if not src.get("enabled", False):
+            continue
+        name: object = src.get("name")
+        url: object = src.get("url")
+        if isinstance(name, str) and isinstance(url, str) and name and url:
+            enabled[name] = url
+
+    if not enabled:
+        logger.warning("RSS 配置中没有启用的源，使用内置默认 RSS 源")
+        return dict(RSS_SOURCES)
+
+    logger.info("从 %s 加载了 %d 个 RSS 源", path, len(enabled))
+    for name, url in enabled.items():
+        logger.debug("  %s → %s", name, url)
+    return enabled
 
 VALID_SOURCES: frozenset[str] = frozenset({"github", "rss", "hn", "arxiv"})
 VALID_STATUSES: frozenset[str] = frozenset(
@@ -916,6 +980,7 @@ def run_pipeline(
     *,
     dry_run: bool = False,
     github_token: str | None = None,
+    rss_config: Path | None = None,
 ) -> None:
     """执行四步知识库自动化流水线。
 
@@ -924,12 +989,13 @@ def run_pipeline(
         limit: 每个来源的最大采集条数。
         dry_run: 干跑模式开关。
         github_token: GitHub 个人访问令牌。
+        rss_config: RSS 配置文件路径，为 ``None`` 时使用默认配置。
     """
     logger.info("=" * 60)
     logger.info("流水线启动: sources=%s, limit=%d, dry_run=%s", sources, limit, dry_run)
 
     date_str = _today_str()
-    raw_path = str(RAW_DIR / f"github-trending-{date_str}.json")
+    raw_path = str(RAW_DIR / f"all-{date_str}.json")
 
     # ---- Step 1: 采集 ----
     all_collected: list[CollectedItem] = []
@@ -937,7 +1003,8 @@ def run_pipeline(
         gh_items = collect_github(limit=limit, github_token=github_token)
         all_collected.extend(gh_items)
     if "rss" in sources:
-        rss_items = collect_rss(limit=limit)
+        rss_sources = _load_rss_config(rss_config)
+        rss_items = collect_rss(sources=rss_sources, limit=limit)
         all_collected.extend(rss_items)
 
     if not all_collected:
@@ -1017,6 +1084,12 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="GitHub 个人访问令牌 (提高 API 速率限制)",
     )
+    parser.add_argument(
+        "--rss-config",
+        type=Path,
+        default=None,
+        help="RSS 源配置文件路径 (YAML，默认: pipeline/rss_sources.yaml)",
+    )
     return parser.parse_args(argv)
 
 
@@ -1058,6 +1131,7 @@ def main(argv: list[str] | None = None) -> int:
             limit=args.limit,
             dry_run=args.dry_run,
             github_token=args.github_token,
+            rss_config=args.rss_config,
         )
     except Exception:
         logger.exception("流水线执行异常")
