@@ -17,19 +17,21 @@ from pathlib import Path
 REQUIRED_FIELDS: dict[str, type] = {
     "id": str,
     "title": str,
+    "source": str,
     "source_url": str,
     "summary": str,
     "tags": list,
+    "category": str,
     "status": str,
+    "collected_at": str,
+    "raw_path": str,
 }
 
 VALID_STATUSES: frozenset[str] = frozenset(
-    {"draft", "review", "published", "archived"}
+    {"draft", "needs_review", "approved", "published", "rejected"}
 )
 
-VALID_AUDIENCES: frozenset[str] = frozenset(
-    {"beginner", "intermediate", "advanced"}
-)
+VALID_SOURCES: frozenset[str] = frozenset({"github_trending", "hacker_news"})
 
 ID_PATTERN: re.Pattern[str] = re.compile(r"^[a-z_]+-\d{8}-\d{3}$")
 
@@ -177,13 +179,30 @@ def validate_tags(value: list) -> str | None:
     return None
 
 
-def validate_score(value: object) -> str | None:
-    """校验 ``score`` 是否为 [1, 10] 范围内的整数。
+def validate_source(value: str) -> str | None:
+    """校验 ``source`` 是否为合法数据来源。
+
+    Args:
+        value: JSON 条目中的 ``source`` 字段值。
+
+    Returns:
+        校验失败时返回错误描述字符串，通过则返回 ``None``。
+    """
+    if not isinstance(value, str):
+        return f"期望 str 类型，实际为 {type(value).__name__}"
+    if value not in VALID_SOURCES:
+        allowed = "、".join(sorted(VALID_SOURCES))
+        return f"无效来源 '{value}'，允许值: {allowed}"
+    return None
+
+
+def validate_innovation_score(value: object) -> str | None:
+    """校验 ``innovation_score`` 是否为 [1, 5] 范围内的整数。
 
     显式拒绝布尔值（``bool`` 是 ``int`` 的子类）。
 
     Args:
-        value: ``score`` 字段值（可以是 int 或 float）。
+        value: ``innovation_score`` 字段值。
 
     Returns:
         校验失败时返回错误描述字符串，通过则返回 ``None``。
@@ -193,26 +212,33 @@ def validate_score(value: object) -> str | None:
     if not isinstance(value, (int, float)):
         return f"期望 int 类型，实际为 {type(value).__name__}"
     if isinstance(value, float) and not value.is_integer():
-        return f"score 必须为整数，当前为 float {value}"
-    if value < 1 or value > 10:
-        return f"score 取值 {value} 超出范围 [1, 10]"
+        return f"innovation_score 必须为整数，当前为 float {value}"
+    if value < 1 or value > 5:
+        return f"innovation_score 取值 {value} 超出范围 [1, 5]"
     return None
 
 
-def validate_audience(value: str) -> str | None:
-    """校验 ``audience`` 是否为允许的受众级别之一。
+def validate_difficulty_score(value: object) -> str | None:
+    """校验 ``difficulty_score`` 是否为 [1, 5] 范围内的整数或 ``None``。
+
+    显式拒绝布尔值（``bool`` 是 ``int`` 的子类）。
 
     Args:
-        value: JSON 条目中的 ``audience`` 字段值。
+        value: ``difficulty_score`` 字段值。
 
     Returns:
         校验失败时返回错误描述字符串，通过则返回 ``None``。
     """
-    if not isinstance(value, str):
-        return f"期望 str 类型，实际为 {type(value).__name__}"
-    if value not in VALID_AUDIENCES:
-        allowed = "、".join(sorted(VALID_AUDIENCES))
-        return f"无效受众 '{value}'，允许值: {allowed}"
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return "期望 int 或 null 类型，实际为 bool"
+    if not isinstance(value, (int, float)):
+        return f"期望 int 或 null 类型，实际为 {type(value).__name__}"
+    if isinstance(value, float) and not value.is_integer():
+        return f"difficulty_score 必须为整数，当前为 float {value}"
+    if value < 1 or value > 5:
+        return f"difficulty_score 取值 {value} 超出范围 [1, 5]"
     return None
 
 
@@ -274,6 +300,12 @@ def validate_file(file_path: Path) -> list[ValidationError]:
         if err:
             errors.append(ValidationError(path_str, "id", err))
 
+    source_value = data.get("source")
+    if isinstance(source_value, str) and "source" in data:
+        err = validate_source(source_value)
+        if err:
+            errors.append(ValidationError(path_str, "source", err))
+
     status_value = data.get("status")
     if isinstance(status_value, str) and "status" in data:
         err = validate_status(status_value)
@@ -298,17 +330,21 @@ def validate_file(file_path: Path) -> list[ValidationError]:
         if err:
             errors.append(ValidationError(path_str, "tags", err))
 
-    score_value = data.get("score")
-    if score_value is not None:
-        err = validate_score(score_value)
+    innovation_score_val = data.get("innovation_score")
+    if innovation_score_val is not None:
+        err = validate_innovation_score(innovation_score_val)
         if err:
-            errors.append(ValidationError(path_str, "score", err))
+            errors.append(
+                ValidationError(path_str, "innovation_score", err)
+            )
 
-    audience_value = data.get("audience")
-    if audience_value is not None:
-        err = validate_audience(audience_value)
+    difficulty_score_val = data.get("difficulty_score")
+    if difficulty_score_val is not None:
+        err = validate_difficulty_score(difficulty_score_val)
         if err:
-            errors.append(ValidationError(path_str, "audience", err))
+            errors.append(
+                ValidationError(path_str, "difficulty_score", err)
+            )
 
     return errors
 

@@ -3,7 +3,6 @@ name: tech-summary
 description: 当需要对采集的技术内容进行深度分析总结时使用此技能
 allowed-tools: Read, Grep, Glob, WebFetch
 ---
-
 # 技术深度分析总结技能
 
 ## 使用场景
@@ -41,18 +40,31 @@ allowed-tools: Read, Grep, Glob, WebFetch
 - 禁止编造亮点；若无可靠信息来源，亮点字段留空
 - 优先关注：架构创新、性能突破、易用性改进、生态整合、差异化能力
 
-#### 2.3 关注度评分（1-10）
+#### 2.3 创新与难度评分（1-5）
 
-按以下标准评分，必须附一句评分理由：
+按以下两个维度分别评分，每个维度必须附一句评分理由：
 
-| 分数 | 含义 | 判断标准 |
-| --- | --- | --- |
-| 9-10 | 改变格局 | 突破性新技术、范式转变、可能重塑领域发展方向的里程碑项目 |
-| 7-8 | 直接有帮助 | 解决明确痛点、显著提效、可立即落地使用的高质量项目 |
-| 5-6 | 值得了解 | 有趣的技术尝试、有潜力的早期项目、特定场景有价值 |
-| 1-4 | 可略过 | 同质化严重、实际价值有限、尚不成熟的 demo 级项目 |
+**创新评分 `innovation_score`（1-5）**：
 
-**评分约束**：15 个项目中 9-10 分不超过 2 个。若候选超过 2 个，只保留最有价值的 2 个为 9-10 分，其余降至 8 分。
+| 分数 | 含义       | 判断标准                                                 |
+| ---- | ---------- | -------------------------------------------------------- |
+| 5    | 改变格局   | 突破性新技术、范式转变、可能重塑领域发展方向的里程碑项目 |
+| 4    | 显著创新   | 解决明确痛点的新颖方案，有明显差异化优势                 |
+| 3    | 有创新     | 有趣的技术尝试、对现有方案的改进                         |
+| 2    | 增量改进   | 工程化完善，但核心思路无太多新意                         |
+| 1    | 同质化     | 与现有项目高度雷同，无实质创新                           |
+
+**评分约束**：15 个项目中 innovation_score=5 的不超过 2 个。若候选超过 2 个，只保留最有价值的 2 个为 5 分，其余降至 4 分。
+
+**难度评分 `difficulty_score`（1-5）**：
+
+| 分数 | 含义       | 判断标准                                                 |
+| ---- | ---------- | -------------------------------------------------------- |
+| 5    | 极高       | 需深厚学术/工程背景，涉及底层系统、编译器等核心领域       |
+| 4    | 较高       | 需要较强的领域知识，有一定学习曲线                       |
+| 3    | 中等       | 有一定技术门槛，但文档完善、社区活跃                     |
+| 2    | 较低       | 上手容易，适合快速集成                                   |
+| 1    | 极低       | 即插即用，无需技术背景                                   |
 
 #### 2.4 标签建议
 
@@ -64,6 +76,14 @@ allowed-tools: Read, Grep, Glob, WebFetch
 
 禁止使用无信息量的标签如 `ai`, `ml`, `tool`（过于泛化）。
 
+#### 2.5 技术分类
+
+为每条内容指定一个 `category`，从以下归类中选取：
+
+- `LLM 框架`、`AI Agent`、`推理引擎`、`向量数据库`、`提示工程`
+- `RAG 系统`、`训练调优`、`多模态`、`工具调用`、`代码生成`
+- `工作流编排`、`评测基准`、`部署推理`
+
 ### 3. 趋势发现
 
 综合分析所有条目，识别共性趋势：
@@ -72,22 +92,22 @@ allowed-tools: Read, Grep, Glob, WebFetch
 - **新概念/术语**：本轮首次出现的值得关注的技术概念（如 `Mixture of Experts`、`Speculative Decoding`），如有则列出，无则为空
 - 趋势描述必须基于本轮实际数据，不得凭空推断宏观行业趋势
 
-### 4. 输出分析结果 JSON
+### 4. 输出分析结果
 
-将分析结果写入 `knowledge/articles/analysis-YYYY-MM-DD.json`，格式见下方「输出格式」章节。
+将分析结果以 JSON 格式输出到 stdout，格式见下方「输出格式」章节。不写入文件（由整理 Agent 负责落地）。
 
 ## 注意事项
 
 - 所有分析基于原始数据中的可验证事实，不可用 AI 猜测替代
 - 评分理由必须具体（引述具体功能或架构设计），不得使用 "看起来不错"、"应该有用" 等模糊理由
-- 摘要必须在 50 字以内，`Read` 后逐条数过再写入
+- 摘要必须在 50 字以内，使用中文，`Read` 后逐条数过再写入
 - 若原始文件中的 `items` 不足 15 条，以实际数量为准，评分分布比例不变
-- 无法获取足够信息做深度分析的项目，标记 `analysis_status: "insufficient_data"`，不纳入趋势发现
+- 无法获取足够信息做深度分析的项目，标记 `status: "needs_review"`，不纳入趋势发现
 - 所有日志记录到 `logging.getLogger(__name__)`
 
 ## 输出格式
 
-输出文件路径：`knowledge/articles/analysis-YYYY-MM-DD.json`
+输出到 stdout，格式如下：
 
 ```json
 {
@@ -108,17 +128,20 @@ allowed-tools: Read, Grep, Glob, WebFetch
   },
   "items": [
     {
-      "name": "owner/repo",
+      "title": "Repository or Article Title",
       "url": "https://github.com/owner/repo",
-      "summary": "的核心技术点，一句话，50字以内。",
+      "summary": "核心技术点，一句话，≤50字，使用中文。",
       "highlights": [
         "技术亮点 1 —— 依据来源",
         "技术亮点 2 —— 依据来源"
       ],
-      "score": 8,
-      "score_reason": "具体评分理由，引用项目特性说明",
+      "innovation_score": 4,
+      "innovation_score_reason": "具体理由，说明创新程度判断依据。",
+      "difficulty_score": 3,
+      "difficulty_score_reason": "具体理由，说明难度判断依据。",
       "suggested_tags": ["agent-framework", "workflow", "open-source"],
-      "analysis_status": "completed"
+      "category": "AI Agent",
+      "status": "draft"
     }
   ]
 }
@@ -126,21 +149,24 @@ allowed-tools: Read, Grep, Glob, WebFetch
 
 ### 字段说明
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `source` | string | 是 | 固定值 `tech-summary` |
-| `skill` | string | 是 | 固定值 `tech-summary` |
-| `analyzed_at` | string | 是 | ISO 8601 格式分析完成时间（含时区） |
-| `input_files` | array | 是 | 本次分析使用的原始采集文件路径列表 |
-| `trends` | object | 是 | 趋势发现结果 |
-| `trends.common_themes` | array | 是 | 共同主题列表，2-4 个 |
-| `trends.new_concepts` | array | 是 | 新概念列表，可为空数组 |
-| `items` | array | 是 | 分析结果列表 |
-| `items[].name` | string | 是 | 项目/文章名称 |
-| `items[].url` | string | 是 | 原始链接 |
-| `items[].summary` | string | 是 | 精简摘要，≤50 字 |
-| `items[].highlights` | array | 是 | 技术亮点，2-3 个，每条附带依据来源 |
-| `items[].score` | integer | 是 | 关注度评分 1-10 |
-| `items[].score_reason` | string | 是 | 评分理由 |
-| `items[].suggested_tags` | array | 是 | 建议标签 3-5 个 |
-| `items[].analysis_status` | string | 是 | `completed` 或 `insufficient_data` |
+| 字段                              | 类型    | 必填 | 说明                                                |
+| --------------------------------- | ------- | ---- | --------------------------------------------------- |
+| `source`                          | string  | 是   | 固定值 `tech-summary`                              |
+| `skill`                           | string  | 是   | 固定值 `tech-summary`                              |
+| `analyzed_at`                     | string  | 是   | ISO 8601 格式分析完成时间（含时区）                 |
+| `input_files`                     | array   | 是   | 本次分析使用的原始采集文件路径列表                  |
+| `trends`                          | object  | 是   | 趋势发现结果                                        |
+| `trends.common_themes`            | array   | 是   | 共同主题列表，2-4 个                                |
+| `trends.new_concepts`             | array   | 是   | 新概念列表，可为空数组                              |
+| `items`                           | array   | 是   | 分析结果列表                                        |
+| `items[].title`                   | string  | 是   | 仓库名或文章标题                                    |
+| `items[].url`                     | string  | 是   | 原始链接                                            |
+| `items[].summary`                 | string  | 是   | 精简摘要，≤50 字，使用中文                          |
+| `items[].highlights`              | array   | 是   | 技术亮点，2-3 个，每条附带依据来源                  |
+| `items[].innovation_score`        | integer | 是   | 创新评分 1-5                                        |
+| `items[].innovation_score_reason` | string  | 是   | 创新评分理由                                        |
+| `items[].difficulty_score`        | integer | 是   | 使用难度评分 1-5                                    |
+| `items[].difficulty_score_reason` | string  | 是   | 难度评分理由                                        |
+| `items[].suggested_tags`          | array   | 是   | 建议标签 3-5 个                                     |
+| `items[].category`                | string  | 是   | 技术类别，如 `AI Agent`、`LLM 框架` 等              |
+| `items[].status`                  | string  | 是   | `draft` 或 `needs_review`                         |

@@ -147,7 +147,7 @@
 
 ```json
 {
-  "id": "github-owner-repo-2026-06-24",
+  "id": "github_trending-20260624-001",
   "title": "Repository or Article Title",
   "source": "github_trending",
   "source_url": "https://github.com/owner/repo",

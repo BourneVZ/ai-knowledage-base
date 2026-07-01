@@ -50,7 +50,7 @@
 
 ```json
 {
-  "id": "github-owner-repo-2026-06-24",
+  "id": "github_trending-20260624-001",
   "title": "Repository or Article Title",
   "source": "github_trending",
   "source_url": "https://github.com/owner/repo",
@@ -62,7 +62,7 @@
   "collected_at": "2026-06-24T10:30:00+08:00",
   "analyzed_at": "2026-06-24T10:45:00+08:00",
   "published_at": null,
-  "innovation_score": 8,
+  "innovation_score": 4,
   "difficulty_score": null,
   "key_points": [
     "核心亮点 1",
