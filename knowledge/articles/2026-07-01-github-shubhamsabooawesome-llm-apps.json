@@ -1,0 +1,38 @@
+{
+  "id": "github-20260701-000",
+  "title": "Shubhamsaboo/awesome-llm-apps",
+  "source": "github",
+  "source_url": "https://github.com/Shubhamsaboo/awesome-llm-apps",
+  "description": "100+ AI Agent & RAG apps you can actually run — clone, customize, ship.",
+  "summary": "100+ AI Agent & RAG apps you can actually run — clone, customize, ship.",
+  "tags": [
+    "ai",
+    "placeholder"
+  ],
+  "category": "AI Application",
+  "status": "draft",
+  "language": "Python",
+  "stars": 116190,
+  "authors": [
+    "Shubhamsaboo"
+  ],
+  "collected_at": "2026-07-01T18:27:41.441864+08:00",
+  "analyzed_at": "2026-07-01T18:27:51.202509+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [],
+  "risks": [],
+  "raw_path": "Z:\\Users\\BVZ\\WorkSpace\\101Doodle\\VibeCoding\\ai-knowledge-base\\knowledge\\raw\\all-2026-07-01.json",
+  "metadata": {
+    "stars": 116190,
+    "language": "Python",
+    "topics": [
+      "agents",
+      "llms",
+      "python",
+      "rag"
+    ],
+    "owner": "Shubhamsaboo"
+  }
+}

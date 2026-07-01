@@ -42,13 +42,13 @@ import httpx
 
 def _load_dotenv() -> None:
     """尝试从项目根目录加载 ``.env`` 文件。
-
+True
     不依赖 python-dotenv 也能运行，缺失时静默跳过。
     """
     try:
         from dotenv import load_dotenv as _ld
 
-        _ld(override=False)
+        _ld(override=True)
     except ImportError:
         pass
 

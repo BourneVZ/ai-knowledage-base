@@ -1,0 +1,38 @@
+{
+  "id": "github-20260701-000",
+  "title": "aaif-goose/goose",
+  "source": "github",
+  "source_url": "https://github.com/aaif-goose/goose",
+  "description": "an open source, extensible AI agent that goes beyond code suggestions - install, execute, edit, and test with any LLM",
+  "summary": "an open source, extensible AI agent that goes beyond code suggestions - install, execute, edit, and test with any LLM",
+  "tags": [
+    "ai",
+    "placeholder"
+  ],
+  "category": "AI Application",
+  "status": "draft",
+  "language": "Rust",
+  "stars": 50514,
+  "authors": [
+    "aaif-goose"
+  ],
+  "collected_at": "2026-07-01T18:27:41.441864+08:00",
+  "analyzed_at": "2026-07-01T18:27:51.202509+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [],
+  "risks": [],
+  "raw_path": "Z:\\Users\\BVZ\\WorkSpace\\101Doodle\\VibeCoding\\ai-knowledge-base\\knowledge\\raw\\all-2026-07-01.json",
+  "metadata": {
+    "stars": 50514,
+    "language": "Rust",
+    "topics": [
+      "acp",
+      "ai",
+      "ai-agents",
+      "mcp"
+    ],
+    "owner": "aaif-goose"
+  }
+}
