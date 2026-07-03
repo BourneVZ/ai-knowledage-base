@@ -31,7 +31,9 @@ VALID_STATUSES: frozenset[str] = frozenset(
     {"draft", "needs_review", "approved", "published", "rejected"}
 )
 
-VALID_SOURCES: frozenset[str] = frozenset({"github_trending", "hacker_news"})
+SOURCE_PATTERN: re.Pattern[str] = re.compile(
+    r"^(github_trending|hacker_news|github|rss/[a-z][a-z0-9_]*)$"
+)
 
 ID_PATTERN: re.Pattern[str] = re.compile(r"^[a-z_]+-\d{8}-\d{3}$")
 
@@ -182,6 +184,9 @@ def validate_tags(value: list) -> str | None:
 def validate_source(value: str) -> str | None:
     """校验 ``source`` 是否为合法数据来源。
 
+    接受 pipeline 产出的动态来源（``github``、``rss/xxx``）
+    以及旧数据中的 ``github_trending``、``hacker_news``。
+
     Args:
         value: JSON 条目中的 ``source`` 字段值。
 
@@ -190,9 +195,11 @@ def validate_source(value: str) -> str | None:
     """
     if not isinstance(value, str):
         return f"期望 str 类型，实际为 {type(value).__name__}"
-    if value not in VALID_SOURCES:
-        allowed = "、".join(sorted(VALID_SOURCES))
-        return f"无效来源 '{value}'，允许值: {allowed}"
+    if not SOURCE_PATTERN.match(value):
+        return (
+            f"无效来源 '{value}'，"
+            "期望格式: github | rss/<name> | github_trending | hacker_news"
+        )
     return None
 
 

@@ -130,7 +130,7 @@ TECH_KEYWORDS: frozenset[str] = frozenset(
 )
 
 VALID_STATUSES: frozenset[str] = frozenset(
-    {"draft", "review", "published", "archived"}
+    {"draft", "needs_review", "approved", "published", "rejected"}
 )
 
 SUMMARY_GRADE_THRESHOLDS: tuple[tuple[int, int], ...] = (

@@ -29,12 +29,17 @@ jobs:
       - name: Run pipeline
         id: pipeline
         env:
-          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+          LLM_PROVIDER: ${{ vars.LLM_PROVIDER }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           QWEN_API_KEY: ${{ secrets.QWEN_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DEEPSEEK_BASE_URL: ${{ vars.DEEPSEEK_BASE_URL }}
+          DEEPSEEK_DEFAULT_MODEL: ${{ vars.DEEPSEEK_DEFAULT_MODEL }}
+          QWEN_BASE_URL: ${{ vars.QWEN_BASE_URL }}
+          QWEN_DEFAULT_MODEL: ${{ vars.QWEN_DEFAULT_MODEL }}
         run: |
-          python pipeline/pipeline.py --sources github,rss --limit 20 --verbose 2>&1 | tee pipeline.log
+          python pipeline/pipeline.py --sources github,rss --limit 20 --verbose --github-token "${{ secrets.GITHUB_TOKEN }}" 2>&1 | tee pipeline.log
           echo "logfile=pipeline.log" >> "$GITHUB_OUTPUT"
 
       - name: Validate articles
