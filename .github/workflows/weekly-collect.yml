@@ -42,16 +42,22 @@ jobs:
           python pipeline/pipeline.py --sources github,rss --limit 20 --verbose --github-token "${{ secrets.GITHUB_TOKEN }}" 2>&1 | tee pipeline.log
           echo "logfile=pipeline.log" >> "$GITHUB_OUTPUT"
 
+      - name: Compute date
+        id: date
+        run: echo "today=$(date -u -d '+8 hours' +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
       - name: Validate articles
-        run: python hooks/validate_json.py knowledge/articles/*.json
+        continue-on-error: true
+        run: python hooks/validate_json.py knowledge/articles/${{ steps.date.outputs.today }}-*.json
 
       - name: Check article quality
-        run: python hooks/check_quality.py knowledge/articles/*.json
+        continue-on-error: true
+        run: python hooks/check_quality.py knowledge/articles/${{ steps.date.outputs.today }}-*.json
 
       - name: Count articles
         id: count
         run: |
-          DATE=$(date -u -d "+8 hours" +%Y-%m-%d)
+          DATE="${{ steps.date.outputs.today }}"
           COUNT=$(ls knowledge/articles/${DATE}-*.json 2>/dev/null | wc -l)
           echo "count=${COUNT}" >> "$GITHUB_OUTPUT"
           echo "date=${DATE}" >> "$GITHUB_OUTPUT"

@@ -32,7 +32,7 @@ VALID_STATUSES: frozenset[str] = frozenset(
 )
 
 SOURCE_PATTERN: re.Pattern[str] = re.compile(
-    r"^(github_trending|hacker_news|github|rss/[a-z][a-z0-9_]*)$"
+    r"^(github_trending|hacker_news|github|rss/[a-z][a-z0-9_-]*)$"
 )
 
 ID_PATTERN: re.Pattern[str] = re.compile(r"^[a-z_]+-\d{8}-\d{3}$")
