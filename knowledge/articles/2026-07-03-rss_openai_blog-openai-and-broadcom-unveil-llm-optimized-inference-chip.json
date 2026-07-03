@@ -1,0 +1,40 @@
+{
+  "id": "openai_blog-20260703-051",
+  "title": "OpenAI and Broadcom unveil LLM-optimized inference chip",
+  "source": "rss/openai_blog",
+  "source_url": "https://openai.com/index/openai-broadcom-jalapeno-inference-chip",
+  "description": "OpenAI and Broadcom introduce Jalapeño, a custom AI chip built for LLM inference to improve performance, efficiency, and scale across AI systems.",
+  "summary": "OpenAI与Broadcom联合发布专为大语言模型推理优化的定制芯片Jalapeño，旨在显著提升LLM推理的性能、能效比和系统扩展性。该芯片针对Transformer架构关键算子（如注意力计算、KV缓存管理）进行硬件级优化，并支持高带宽内存集成与低延迟片间互联，面向数据中心级AI服务部署。",
+  "tags": [
+    "llm",
+    "inference",
+    "hardware",
+    "ai-chip"
+  ],
+  "category": "Inference Engine",
+  "status": "draft",
+  "language": "",
+  "stars": null,
+  "authors": [
+    ""
+  ],
+  "collected_at": "2026-07-03T13:32:47.148074+08:00",
+  "analyzed_at": "2026-07-03T13:37:25.626132+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": 5,
+  "key_points": [
+    "专为LLM推理定制的ASIC架构",
+    "深度协同优化Transformer核心算子",
+    "面向大规模AI服务部署的能效与扩展性设计"
+  ],
+  "risks": [
+    "流片周期长、验证成本高",
+    "生态适配依赖软件栈深度重构"
+  ],
+  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "metadata": {
+    "rss_source": "openai_blog",
+    "pub_date": "Wed, 24 Jun 2026 06:00:00 GMT"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "openai_blog-20260703-062",
+  "title": "A near-autonomous AI chemist improves a challenging reaction in medicinal chemistry",
+  "source": "rss/openai_blog",
+  "source_url": "https://openai.com/index/ai-chemist-improves-reaction",
+  "description": "OpenAI and Molecule.one show how a near-autonomous AI chemist using GPT-5.4 improved a key drug-making reaction, advancing medicinal chemistry research.",
+  "summary": "该研究展示了基于GPT-5.4的近自主AI化学家系统，通过闭环实验设计、反应条件优化与实时数据分析，在药物化学中成功改进了一项具有挑战性的关键合成反应。系统整合了大语言模型推理、化学知识图谱、自动化实验平台接口及反馈学习机制，实现了从假设生成到验证迭代的端到端自主优化。",
+  "tags": [
+    "ai",
+    "llm",
+    "ai-agent",
+    "cheminformatics",
+    "autonomous-lab"
+  ],
+  "category": "AI Agent",
+  "status": "draft",
+  "language": "",
+  "stars": null,
+  "authors": [
+    ""
+  ],
+  "collected_at": "2026-07-03T13:32:47.148074+08:00",
+  "analyzed_at": "2026-07-03T13:38:11.599271+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": 5,
+  "key_points": [
+    "多模态闭环自主实验决策",
+    "LLM驱动的化学反应机理推理",
+    "真实实验室硬件协同控制"
+  ],
+  "risks": [
+    "依赖高精度专用化学机器人硬件",
+    "GPT-5.4未公开，复现性受限"
+  ],
+  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "metadata": {
+    "rss_source": "openai_blog",
+    "pub_date": "Wed, 17 Jun 2026 10:00:00 GMT"
+  }
+}

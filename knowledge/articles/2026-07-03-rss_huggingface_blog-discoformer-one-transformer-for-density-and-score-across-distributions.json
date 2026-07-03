@@ -1,0 +1,41 @@
+{
+  "id": "huggingface_blog-20260703-067",
+  "title": "DiScoFormer: One transformer for density and score, across distributions",
+  "source": "rss/huggingface_blog",
+  "source_url": "https://huggingface.co/blog/allenai/discoformer",
+  "description": "",
+  "summary": "DiScoFormer 是一种新型统一Transformer架构，旨在同时建模概率密度（density）和梯度分数（score）函数，支持跨多种分布（如高斯、流形、离散分布）的联合学习。其核心创新在于共享参数化结构实现双任务协同优化，避免传统方法中密度估计与分数匹配的割裂设计，提升采样效率与泛化能力，并在生成建模与能量基模型中展现潜力。",
+  "tags": [
+    "transformer",
+    "generative-modeling",
+    "score-based-generation",
+    "density-estimation",
+    "diffusion"
+  ],
+  "category": "Research",
+  "status": "draft",
+  "language": "",
+  "stars": null,
+  "authors": [
+    ""
+  ],
+  "collected_at": "2026-07-03T13:32:47.148074+08:00",
+  "analyzed_at": "2026-07-03T13:38:36.211807+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": 4,
+  "key_points": [
+    "单Transformer统一密度与分数建模",
+    "跨分布泛化能力",
+    "参数共享驱动双任务协同优化"
+  ],
+  "risks": [
+    "理论收敛性尚未严格证明",
+    "在高维复杂分布上的实证验证尚不充分"
+  ],
+  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "metadata": {
+    "rss_source": "huggingface_blog",
+    "pub_date": "Mon, 29 Jun 2026 18:02:48 GMT"
+  }
+}

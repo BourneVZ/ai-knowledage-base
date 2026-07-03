@@ -1,0 +1,41 @@
+{
+  "id": "lobsters_ai-20260703-030",
+  "title": "AI Learns the \"Dark Art\" of RF Chip Design",
+  "source": "rss/lobsters_ai",
+  "source_url": "https://spectrum.ieee.org/ai-radio-chip-design",
+  "description": "Comments",
+  "summary": "该内容报道AI系统首次成功应用于射频（RF）芯片设计这一传统上高度依赖专家经验的‘黑科技’领域。AI通过学习电磁仿真、版图约束与性能权衡，实现了从规格到可制造RF电路的端到端生成，显著缩短设计周期并提升能效比。技术亮点包括多物理场联合建模、硬件感知强化学习策略及与EDA工具链的深度集成。",
+  "tags": [
+    "ai",
+    "chip-design",
+    "reinforcement-learning",
+    "eda",
+    "hardware-ai"
+  ],
+  "category": "AI Infrastructure",
+  "status": "draft",
+  "language": "",
+  "stars": null,
+  "authors": [
+    ""
+  ],
+  "collected_at": "2026-07-03T13:32:47.148074+08:00",
+  "analyzed_at": "2026-07-03T13:35:57.768696+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": 5,
+  "key_points": [
+    "端到端RF芯片自动设计",
+    "多物理场耦合建模能力",
+    "与工业级EDA工具链协同优化"
+  ],
+  "risks": [
+    "流片验证成本高、迭代周期长",
+    "模型泛化性受限于工艺节点和PDK覆盖范围"
+  ],
+  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "metadata": {
+    "rss_source": "lobsters_ai",
+    "pub_date": "Sat, 27 Jun 2026 13:03:29 -0500"
+  }
+}

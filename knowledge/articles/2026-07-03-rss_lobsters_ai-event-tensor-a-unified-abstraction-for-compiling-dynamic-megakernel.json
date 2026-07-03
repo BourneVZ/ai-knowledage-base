@@ -1,0 +1,41 @@
+{
+  "id": "lobsters_ai-20260703-041",
+  "title": "Event Tensor: A Unified Abstraction for Compiling Dynamic Megakernel",
+  "source": "rss/lobsters_ai",
+  "source_url": "https://arxiv.org/abs/2604.13327",
+  "description": "Comments",
+  "summary": "Event Tensor 是一种面向动态 Megakernel 编译的统一抽象，旨在将事件驱动的计算（如稀疏激活、条件执行、异步 I/O）建模为张量化的事件流，从而支持在 GPU 等硬件上高效编译和调度动态控制流。其核心创新在于将传统静态图编译范式扩展至动态场景，通过事件语义张量化实现编译器自动优化与硬件原语对齐。",
+  "tags": [
+    "compiler",
+    "gpu",
+    "megakernel",
+    "dynamic-execution",
+    "ai-infrastructure"
+  ],
+  "category": "AI Infrastructure",
+  "status": "draft",
+  "language": "",
+  "stars": null,
+  "authors": [
+    ""
+  ],
+  "collected_at": "2026-07-03T13:32:47.148074+08:00",
+  "analyzed_at": "2026-07-03T13:36:45.015151+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": 5,
+  "key_points": [
+    "事件驱动计算的张量化建模",
+    "动态 Megakernel 的统一编译抽象",
+    "硬件感知的事件调度与优化"
+  ],
+  "risks": [
+    "当前缺乏公开实现与基准验证",
+    "依赖定制化硬件支持，通用性受限"
+  ],
+  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "metadata": {
+    "rss_source": "lobsters_ai",
+    "pub_date": "Mon, 22 Jun 2026 18:18:52 -0500"
+  }
+}

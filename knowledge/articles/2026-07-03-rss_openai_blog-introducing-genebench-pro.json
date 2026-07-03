@@ -1,0 +1,41 @@
+{
+  "id": "openai_blog-20260703-045",
+  "title": "Introducing GeneBench-Pro",
+  "source": "rss/openai_blog",
+  "source_url": "https://openai.com/index/introducing-genebench-pro",
+  "description": "Introducing GeneBench-Pro, a new benchmark testing AI performance in genomics, biology, and scientific research using complex, real-world datasets.",
+  "summary": "GeneBench-Pro 是一个面向基因组学、生物学及科学研领域的新型基准测试套件，聚焦于评估AI模型在复杂真实世界数据上的推理、泛化与专业领域理解能力。它突破传统NLP基准局限，引入多模态生物数据（如DNA序列、蛋白质结构、实验文献）、跨任务评估框架及专家验证机制，强调可复现性与临床/科研相关性。",
+  "tags": [
+    "benchmark",
+    "genomics",
+    "ai",
+    "scientific-ai",
+    "evaluation"
+  ],
+  "category": "Research",
+  "status": "draft",
+  "language": "",
+  "stars": null,
+  "authors": [
+    ""
+  ],
+  "collected_at": "2026-07-03T13:32:47.148074+08:00",
+  "analyzed_at": "2026-07-03T13:37:01.922464+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": 4,
+  "key_points": [
+    "覆盖真实多模态生物数据",
+    "融合专家验证的评估标准",
+    "支持跨任务泛化能力量化"
+  ],
+  "risks": [
+    "领域专业知识门槛高，构建与维护成本大",
+    "生物数据隐私与合规性挑战"
+  ],
+  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "metadata": {
+    "rss_source": "openai_blog",
+    "pub_date": "Tue, 30 Jun 2026 00:00:00 GMT"
+  }
+}

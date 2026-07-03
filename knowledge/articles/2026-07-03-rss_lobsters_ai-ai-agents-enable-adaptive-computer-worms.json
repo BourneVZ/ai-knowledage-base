@@ -1,0 +1,41 @@
+{
+  "id": "lobsters_ai-20260703-035",
+  "title": "AI Agents Enable Adaptive Computer Worms",
+  "source": "rss/lobsters_ai",
+  "source_url": "https://cleverhans.io/worm.html",
+  "description": "Full Paper: https://arxiv.org/pdf/2606.03811\nComments",
+  "summary": "该论文提出将AI Agent技术应用于计算机蠕虫系统，构建具备环境感知、自主决策与动态适应能力的新型恶意软件原型。其核心是利用LLM驱动的Agent实时分析目标系统状态、生成并执行攻击载荷、规避检测机制，展示了AI在自动化网络攻防中的颠覆性潜力，同时引发对AI安全边界的深刻警示。",
+  "tags": [
+    "ai",
+    "agent",
+    "security",
+    "llm",
+    "malware"
+  ],
+  "category": "AI Agent",
+  "status": "draft",
+  "language": "",
+  "stars": null,
+  "authors": [
+    ""
+  ],
+  "collected_at": "2026-07-03T13:32:47.148074+08:00",
+  "analyzed_at": "2026-07-03T13:36:18.435707+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": 4,
+  "key_points": [
+    "LLM驱动的自主攻击决策闭环",
+    "运行时环境感知与动态载荷生成",
+    "对抗性AI驱动的免杀与逃逸机制"
+  ],
+  "risks": [
+    "严重伦理与安全风险，可能被滥用为高级持续性威胁",
+    "缺乏有效监管与防御范式"
+  ],
+  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "metadata": {
+    "rss_source": "lobsters_ai",
+    "pub_date": "Fri, 26 Jun 2026 17:15:36 -0500"
+  }
+}
