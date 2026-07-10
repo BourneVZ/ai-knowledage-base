@@ -1,0 +1,41 @@
+{
+  "id": "hn_ai-20260711-021",
+  "title": "AI-generated videos to maximally drive a target brain region",
+  "source": "rss/hn_ai",
+  "source_url": "https://nevo-project.epfl.ch/",
+  "description": "Article URL: https://nevo-project.epfl.ch/\nComments URL: https://news.ycombinator.com/item?id=48856904\nPoints: 243\n# Comments: 211",
+  "summary": "该研究提出一种闭环神经反馈系统，利用生成式AI（扩散模型）实时合成视频刺激，以最大化激活特定目标脑区（如V1或FFA）。系统结合fMRI实时解码、目标区域活动建模与梯度引导的视频优化，在人类受试者中验证了对脑区活动的精准调控能力，为神经科学和脑机接口提供了新型因果干预范式。",
+  "tags": [
+    "ai",
+    "neuroscience",
+    "brain-computer-interface",
+    "generative-model",
+    "fMRI"
+  ],
+  "category": "AI Application",
+  "status": "draft",
+  "language": "",
+  "stars": null,
+  "authors": [
+    ""
+  ],
+  "collected_at": "2026-07-11T03:37:49.056222+08:00",
+  "analyzed_at": "2026-07-11T03:39:47.628054+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": 5,
+  "key_points": [
+    "fMRI实时闭环反馈控制",
+    "生成式视频刺激的梯度驱动优化",
+    "靶向特定脑区的因果神经调控"
+  ],
+  "risks": [
+    "依赖高精度个体化fMRI校准",
+    "跨被试泛化能力尚未验证"
+  ],
+  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-11.json",
+  "metadata": {
+    "rss_source": "hn_ai",
+    "pub_date": "Fri, 10 Jul 2026 07:39:11 +0000"
+  }
+}

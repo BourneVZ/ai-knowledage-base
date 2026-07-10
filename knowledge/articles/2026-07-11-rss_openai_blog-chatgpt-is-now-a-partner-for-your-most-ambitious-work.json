@@ -1,0 +1,41 @@
+{
+  "id": "openai_blog-20260711-046",
+  "title": "ChatGPT is now a partner for your most ambitious work",
+  "source": "rss/openai_blog",
+  "source_url": "https://openai.com/index/chatgpt-for-your-most-ambitious-work",
+  "description": "ChatGPT Work is an agent that can take action across your apps and files, stay with a project for hours if needed, and turn a goal into finished work.",
+  "summary": "ChatGPT Work 是 OpenAI 推出的面向专业场景的 AI 代理产品，具备跨应用与本地文件操作能力，支持长时间上下文保持和端到端目标执行（如将模糊需求转化为完成态交付物），融合多工具调用、状态持久化与自主任务编排能力，代表 LLM 从对话式助手向自主工作伙伴的关键演进。",
+  "tags": [
+    "ai",
+    "agent",
+    "llm",
+    "automation",
+    "multi-tool"
+  ],
+  "category": "AI Agent",
+  "status": "draft",
+  "language": "",
+  "stars": null,
+  "authors": [
+    ""
+  ],
+  "collected_at": "2026-07-11T03:37:49.056222+08:00",
+  "analyzed_at": "2026-07-11T03:41:41.298780+08:00",
+  "published_at": null,
+  "innovation_score": 5,
+  "difficulty_score": 4,
+  "key_points": [
+    "跨应用自主操作能力",
+    "长时程项目级任务持续性",
+    "目标驱动的端到端工作流闭环"
+  ],
+  "risks": [
+    "企业级数据隐私与权限管控挑战",
+    "复杂任务中不可控的幻觉与错误累积"
+  ],
+  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-11.json",
+  "metadata": {
+    "rss_source": "openai_blog",
+    "pub_date": "Thu, 09 Jul 2026 10:00:00 GMT"
+  }
+}
