@@ -178,14 +178,21 @@ class QualityReport:
 def collect_files(paths: list[str]) -> list[Path]:
     """根据输入路径收集所有 JSON 文件。
 
+    支持三种输入形式:
+    - 目录路径: 递归收集目录下所有 ``.json`` 文件。
+    - 通配符: 如 ``knowledge/articles/*.json``。
+    - 单文件: 直接检查是否为 ``.json`` 文件。
+
     Args:
-        paths: 文件路径或通配符列表。
+        paths: 文件路径、目录路径或通配符列表。
 
     Returns:
         排序后的 ``Path`` 对象列表。
     """
-    files: list[Path] = []
+    files: set[Path] = set()
     for raw_path in paths:
+        p = Path(raw_path)
+
         if "*" in raw_path or "?" in raw_path:
             expanded = sorted(Path().glob(raw_path))
             if not expanded:
@@ -195,17 +202,32 @@ def collect_files(paths: list[str]) -> list[Path]:
                 )
             for fp in expanded:
                 if fp.suffix == ".json" and fp.is_file():
-                    files.append(fp)
-        else:
-            p = Path(raw_path)
-            if p.is_file():
-                files.append(p)
-            else:
+                    files.add(fp)
+        elif p.is_dir():
+            directory_json_files = sorted(p.rglob("*.json"))
+            if not directory_json_files:
                 print(
-                    f"警告: '{raw_path}' 不是有效文件，已跳过。",
+                    f"警告: 目录 '{raw_path}' 下未找到任何 .json 文件，已跳过。",
                     file=sys.stderr,
                 )
-    return files
+            for fp in directory_json_files:
+                if fp.is_file():
+                    files.add(fp)
+        elif p.is_file():
+            if p.suffix == ".json":
+                files.add(p)
+            else:
+                print(
+                    f"警告: '{raw_path}' 不是 .json 文件，已跳过。",
+                    file=sys.stderr,
+                )
+        else:
+            print(
+                f"警告: '{raw_path}' 不是有效的文件或目录，已跳过。",
+                file=sys.stderr,
+            )
+
+    return sorted(files)
 
 
 # ---------------------------------------------------------------------------
@@ -227,9 +249,7 @@ def score_summary_quality(data: dict[str, object]) -> DimensionScore:
     else:
         base = 0
 
-    found_count = sum(
-        1 for kw in TECH_KEYWORDS if kw in summary.lower()
-    )
+    found_count = sum(1 for kw in TECH_KEYWORDS if kw in summary.lower())
     tech_bonus = TECH_KEYWORD_BONUS if found_count >= TECH_BONUS_THRESHOLD else 0
 
     final = min(25, base + tech_bonus)
@@ -270,9 +290,7 @@ def score_format_compliance(data: dict[str, object]) -> DimensionScore:
     points = 0
     details: list[str] = []
 
-    def _check(
-        field: str, label: str, validator: object
-    ) -> None:
+    def _check(field: str, label: str, validator: object) -> None:
         nonlocal points
         value = data.get(field)
         try:
@@ -287,30 +305,30 @@ def score_format_compliance(data: dict[str, object]) -> DimensionScore:
     id_val = data.get("id")
     if isinstance(id_val, str) and len(id_val) > 0:
         points += 4
-        details.append(f"id(+4)")
+        details.append("id(+4)")
     else:
-        details.append(f"id(0): 缺失或为空")
+        details.append("id(0): 缺失或为空")
 
     title_val = data.get("title")
     if isinstance(title_val, str) and len(title_val.strip()) > 0:
         points += 4
-        details.append(f"title(+4)")
+        details.append("title(+4)")
     else:
-        details.append(f"title(0): 缺失或为空")
+        details.append("title(0): 缺失或为空")
 
     url_val = data.get("source_url")
     if isinstance(url_val, str) and re.match(r"^https?://", url_val):
         points += 4
-        details.append(f"source_url(+4)")
+        details.append("source_url(+4)")
     else:
-        details.append(f"source_url(0): 缺失或格式无效")
+        details.append("source_url(0): 缺失或格式无效")
 
     status_val = data.get("status")
     if isinstance(status_val, str) and status_val in VALID_STATUSES:
         points += 4
-        details.append(f"status(+4)")
+        details.append("status(+4)")
     else:
-        details.append(f"status(0): 缺失或值不合法")
+        details.append("status(0): 缺失或值不合法")
 
     ts_present = False
     for ts_key in ("collected_at", "analyzed_at"):
@@ -320,9 +338,9 @@ def score_format_compliance(data: dict[str, object]) -> DimensionScore:
             break
     if ts_present:
         points += 4
-        details.append(f"时间戳(+4)")
+        details.append("时间戳(+4)")
     else:
-        details.append(f"时间戳(0): collected_at 与 analyzed_at 均缺失")
+        details.append("时间戳(0): collected_at 与 analyzed_at 均缺失")
 
     return DimensionScore("格式规范", points, 20, " | ".join(details))
 
@@ -380,9 +398,7 @@ def score_buzzword_free(data: dict[str, object]) -> DimensionScore:
     total_hits = len(cn_hits) + len(en_hits)
 
     if total_hits == 0:
-        return DimensionScore(
-            "空洞词检测", 15, 15, "未命中任何空洞词，满分"
-        )
+        return DimensionScore("空洞词检测", 15, 15, "未命中任何空洞词，满分")
 
     penalty = min(15, total_hits * 3)
     score = max(0, 15 - penalty)
@@ -426,20 +442,14 @@ def print_report(report: QualityReport) -> None:
 
     for dim in report.dimensions:
         bar = render_bar(dim.score, dim.max_score)
-        print(
-            f"  {dim.name:　<6s}  {bar}  "
-            f"{dim.score:>5.1f}/{dim.max_score}"
-        )
+        print(f"  {dim.name:　<6s}  {bar}  {dim.score:>5.1f}/{dim.max_score}")
         if dim.detail:
             print(f"         {dim.detail}")
 
     print(sep)
     grade_icon = {"A": "★", "B": "●", "C": "✗"}.get(report.grade, "?")
 
-    print(
-        f"  {grade_icon} 总分: {report.total_score:.1f}/100  "
-        f"等级: {report.grade}"
-    )
+    print(f"  {grade_icon} 总分: {report.total_score:.1f}/100  等级: {report.grade}")
     print(sep)
 
 
