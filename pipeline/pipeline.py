@@ -34,9 +34,9 @@ except ImportError:
     yaml = None  # type: ignore[assignment]
 
 try:
-    from .model_client import chat_with_retry  # type: ignore[assignment]
+    from .model_client import chat_with_retry, tracker  # type: ignore[assignment]
 except ImportError:
-    from model_client import chat_with_retry  # type: ignore[no-redef]
+    from model_client import chat_with_retry, tracker  # type: ignore[no-redef]
 
 try:
     from .model_client import create_provider  # type: ignore[assignment]
@@ -124,6 +124,7 @@ def _load_rss_config(yaml_path: Path | None = None) -> dict[str, str]:
     for name, url in enabled.items():
         logger.debug("  %s → %s", name, url)
     return enabled
+
 
 VALID_SOURCES: frozenset[str] = frozenset({"github", "rss", "hn", "arxiv"})
 VALID_STATUSES: frozenset[str] = frozenset(
@@ -405,7 +406,9 @@ def collect_github(
         "per_page": min(limit, 100),
     }
 
-    logger.info("采集 GitHub: q=%s, per_page=%d", GITHUB_SEARCH_QUERY, params["per_page"])
+    logger.info(
+        "采集 GitHub: q=%s, per_page=%d", GITHUB_SEARCH_QUERY, params["per_page"]
+    )
     try:
         resp_text = _http_get(url, headers=headers, params=params)
     except httpx.HTTPError as e:
@@ -538,15 +541,17 @@ def _parse_rss_items(xml_text: str) -> list[dict[str, str]]:
     for block in item_blocks:
         title_match = re.search(r"<title>(.*?)</title>", block, re.DOTALL)
         link_match = re.search(r"<link>(.*?)</link>", block, re.DOTALL)
-        desc_match = re.search(
-            r"<description>(.*?)</description>", block, re.DOTALL
-        )
+        desc_match = re.search(r"<description>(.*?)</description>", block, re.DOTALL)
         pub_match = re.search(r"<pubDate>(.*?)</pubDate>", block, re.DOTALL)
         items.append(
             {
-                "title": _decode_xml(title_match.group(1).strip()) if title_match else "",
+                "title": _decode_xml(title_match.group(1).strip())
+                if title_match
+                else "",
                 "link": link_match.group(1).strip() if link_match else "",
-                "description": _decode_xml(desc_match.group(1).strip()) if desc_match else "",
+                "description": _decode_xml(desc_match.group(1).strip())
+                if desc_match
+                else "",
                 "pub_date": pub_match.group(1).strip() if pub_match else "",
             }
         )
@@ -686,8 +691,12 @@ def analyze_items(
                 collected_at=item["collected_at"],
                 analyzed_at=_now_iso(),
                 published_at=None,
-                innovation_score=_safe_int_in_range(analysis.get("innovation_score"), 1, 5),
-                difficulty_score=_safe_int_in_range(analysis.get("difficulty_score"), 1, 5),
+                innovation_score=_safe_int_in_range(
+                    analysis.get("innovation_score"), 1, 5
+                ),
+                difficulty_score=_safe_int_in_range(
+                    analysis.get("difficulty_score"), 1, 5
+                ),
                 key_points=analysis.get("key_points", [])[:5],
                 risks=analysis.get("risks", [])[:5],
                 raw_path="",  # 将在整理阶段填充
@@ -884,7 +893,10 @@ def _validate_item_requirements(item: AnalyzedItem) -> bool:
             logger.warning("条目缺少必填字段 '%s': %s", field, item.get("title", "?"))
             return False
 
-    if not isinstance(item.get("summary"), str) or len(item["summary"]) < SUMMARY_MIN_LENGTH:
+    if (
+        not isinstance(item.get("summary"), str)
+        or len(item["summary"]) < SUMMARY_MIN_LENGTH
+    ):
         logger.warning("摘要过短或无效: %s", item.get("title", "?"))
         return False
 
@@ -961,9 +973,7 @@ def save_items(
             json.dumps(item, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
-        item["raw_path"] = str(
-            RAW_DIR / f"github-trending-{date_str}.json"
-        )
+        item["raw_path"] = str(RAW_DIR / f"github-trending-{date_str}.json")
         saved += 1
 
     logger.info("文章已保存: %d 条 → %s", saved, ARTICLES_DIR)
@@ -1028,6 +1038,8 @@ def run_pipeline(
     save_items(organized, all_collected, dry_run=dry_run)
     logger.info("Step 4 保存完成")
     logger.info("流水线执行完毕")
+
+    tracker.report()
 
 
 # ===================================================================

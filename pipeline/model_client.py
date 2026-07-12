@@ -31,6 +31,7 @@ import logging
 import os
 import time
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from dataclasses import dataclass, field
 
 import httpx
@@ -42,8 +43,8 @@ import httpx
 
 def _load_dotenv() -> None:
     """尝试从项目根目录加载 ``.env`` 文件。
-True
-    不依赖 python-dotenv 也能运行，缺失时静默跳过。
+    True
+        不依赖 python-dotenv 也能运行，缺失时静默跳过。
     """
     try:
         from dotenv import load_dotenv as _ld
@@ -312,9 +313,7 @@ class OpenAICompatibleProvider(LLMProvider):
     # 内部方法
     # ------------------------------------------------------------------
 
-    def _parse_response(
-        self, data: dict[str, object], model: str
-    ) -> LLMResponse:
+    def _parse_response(self, data: dict[str, object], model: str) -> LLMResponse:
         """将 API 原始响应解析为 :class:`LLMResponse`。
 
         Args:
@@ -326,16 +325,12 @@ class OpenAICompatibleProvider(LLMProvider):
         """
         choices: object = data.get("choices")
         if not isinstance(choices, list) or len(choices) == 0:
-            raise ValueError(
-                f"API 返回的 choices 无效: {choices}"
-            )
+            raise ValueError(f"API 返回的 choices 无效: {choices}")
 
         choice: dict[str, object] = choices[0]  # type: ignore[assignment]
         message: object = choice.get("message", {})
         if not isinstance(message, dict):
-            raise ValueError(
-                f"API 返回的 message 无效: {message}"
-            )
+            raise ValueError(f"API 返回的 message 无效: {message}")
 
         content: object = message.get("content", "")
         if not isinstance(content, str):
@@ -348,9 +343,7 @@ class OpenAICompatibleProvider(LLMProvider):
         if isinstance(usage_data, dict):
             usage = Usage(
                 prompt_tokens=self._safe_int(usage_data.get("prompt_tokens")),
-                completion_tokens=self._safe_int(
-                    usage_data.get("completion_tokens")
-                ),
+                completion_tokens=self._safe_int(usage_data.get("completion_tokens")),
                 total_tokens=self._safe_int(usage_data.get("total_tokens")),
             )
 
@@ -502,12 +495,14 @@ def chat_with_retry(
     for attempt in range(max_retries + 1):
         try:
             provider = create_provider()
-            return provider.chat(
+            response = provider.chat(
                 messages,
                 model=model,
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
+            tracker.record(response.usage, _get_provider_name())
+            return response
         except httpx.TimeoutException as e:
             last_error = e
             logger.warning(
@@ -545,7 +540,7 @@ def chat_with_retry(
             )
 
         if attempt < max_retries:
-            delay = min(BASE_DELAY * (2 ** attempt), MAX_DELAY)
+            delay = min(BASE_DELAY * (2**attempt), MAX_DELAY)
             logger.info("等待 %.1f 秒后重试...", delay)
             time.sleep(delay)
         else:
@@ -641,14 +636,170 @@ def calculate_cost(
     total_cost = input_cost + output_cost
 
     logger.debug(
-        "成本估算: provider=%s, input=%d tokens, output=%d tokens, "
-        "total=$%.6f",
+        "成本估算: provider=%s, input=%d tokens, output=%d tokens, total=$%.6f",
         effective_provider,
         usage.prompt_tokens,
         usage.completion_tokens,
         total_cost,
     )
     return round(total_cost, 6)
+
+
+# ---------------------------------------------------------------------------
+# CostTracker — 调用成本追踪
+# ---------------------------------------------------------------------------
+
+# 国产模型价格表（单位：元/百万 tokens）
+_PRICE_TABLE_RMB: dict[str, dict[str, float]] = {
+    "deepseek": {"input": 1.0, "output": 2.0},
+    "qwen": {"input": 0.8, "output": 4.8},
+    "openai": {"input": 1.0, "output": 4.0},
+}
+"""国产 LLM 提供商参考定价（元/百万 tokens）。
+
+模型对应关系:
+- deepseek → deepseek-v4-flash
+- qwen → qwen-plus
+- openai → gpt-4o-mini
+"""
+
+
+class CostTracker:
+    """LLM API 调用成本追踪器。
+
+    记录每次 API 调用的 token 消耗，按提供商估算人民币成本，
+    支持生成格式化的成本报告。
+
+    Usage::
+
+        tracker = CostTracker()
+        tracker.record(response.usage, provider="deepseek")
+        print(f"估算成本: ¥{tracker.estimated_cost():.6f}")
+        tracker.report()
+    """
+
+    def __init__(self) -> None:
+        """初始化空的调用记录列表。"""
+        self._records: list[dict[str, object]] = []
+
+    def record(self, usage: Usage, provider: str) -> None:
+        """记录一次 API 调用的 Token 用量。
+
+        Args:
+            usage: API 调用返回的 Token 用量统计。
+            provider: 提供商名称（``"deepseek"``、``"qwen"``、``"openai"``）。
+        """
+        self._records.append(
+            {
+                "provider": provider,
+                "prompt_tokens": usage.prompt_tokens,
+                "completion_tokens": usage.completion_tokens,
+                "total_tokens": usage.total_tokens,
+            }
+        )
+        logger.debug(
+            "CostTracker 记录: provider=%s, prompt=%d, completion=%d, total=%d",
+            provider,
+            usage.prompt_tokens,
+            usage.completion_tokens,
+            usage.total_tokens,
+        )
+
+    def estimated_cost(self, provider: str | None = None) -> float:
+        """估算指定提供商（或所有）的总成本。
+
+        Args:
+            provider: 提供商名称，为 ``None`` 时返回所有提供商的总成本。
+
+        Returns:
+            人民币成本（元），四舍五入到小数点后 6 位。
+        """
+        total = 0.0
+        for record in self._records:
+            rec_provider = str(record["provider"])
+            if provider is not None and rec_provider != provider:
+                continue
+            pricing = _PRICE_TABLE_RMB.get(rec_provider)
+            if pricing is None:
+                logger.warning("无定价信息: %s，跳过", rec_provider)
+                continue
+            prompt_tokens_raw = record["prompt_tokens"]
+            completion_tokens_raw = record["completion_tokens"]
+            prompt_tokens = (
+                int(prompt_tokens_raw)
+                if isinstance(prompt_tokens_raw, (int, float))
+                else 0
+            )
+            completion_tokens = (
+                int(completion_tokens_raw)
+                if isinstance(completion_tokens_raw, (int, float))
+                else 0
+            )
+            input_cost = (prompt_tokens / 1_000_000.0) * pricing["input"]
+            output_cost = (completion_tokens / 1_000_000.0) * pricing["output"]
+            total += input_cost + output_cost
+        return round(total, 6)
+
+    def report(self, provider: str | None = None) -> None:
+        """打印格式化的成本报告。
+
+        Args:
+            provider: 提供商名称，为 ``None`` 时报告所有提供商。
+        """
+        grouped: dict[str, list[dict[str, object]]] = defaultdict(list)
+        for record in self._records:
+            rec_provider = str(record["provider"])
+            if provider is not None and rec_provider != provider:
+                continue
+            grouped[rec_provider].append(record)
+
+        if not grouped:
+            print("CostTracker: 无调用记录。")
+            return
+
+        print("=" * 60)
+        print("LLM API 调用成本报告")
+        print("=" * 60)
+
+        grand_total = 0.0
+        for prov in sorted(grouped):
+            records = grouped[prov]
+            call_count = len(records)
+
+            def _safe_sum(key: str) -> int:
+                total = 0
+                for r in records:
+                    val = r[key]
+                    if isinstance(val, (int, float)):
+                        total += int(val)
+                return total
+
+            total_prompt = _safe_sum("prompt_tokens")
+            total_completion = _safe_sum("completion_tokens")
+            total_tokens = _safe_sum("total_tokens")
+
+            pricing = _PRICE_TABLE_RMB.get(prov, {"input": 0.0, "output": 0.0})
+            cost = self.estimated_cost(provider=prov)
+            grand_total += cost
+
+            print(f"\n提供商: {prov}")
+            print(
+                f"  定价: 输入 {pricing['input']} 元/M tokens | "
+                f"输出 {pricing['output']} 元/M tokens"
+            )
+            print(f"  调用次数: {call_count}")
+            print(f"  输入 tokens: {total_prompt:,}")
+            print(f"  输出 tokens: {total_completion:,}")
+            print(f"  总 tokens: {total_tokens:,}")
+            print(f"  估算成本: ¥{cost:.6f}")
+
+        if len(grouped) > 1:
+            print(f"\n总计成本: ¥{grand_total:.6f}")
+        print("=" * 60)
+
+
+tracker = CostTracker()
+"""全局成本追踪器实例，供流水线各处共用。"""
 
 
 # ---------------------------------------------------------------------------
@@ -731,9 +882,7 @@ def _run_self_test() -> int:
     cost = calculate_cost(test_usage, provider_name="deepseek")
     expected_cost = (1000 / 1000 * 0.00014) + (500 / 1000 * 0.00028)
     if abs(cost - expected_cost) > 0.000001:
-        errors.append(
-            f"成本计算不匹配: 期望 {expected_cost}, 实际 {cost}"
-        )
+        errors.append(f"成本计算不匹配: 期望 {expected_cost}, 实际 {cost}")
     logger.info("DeepSeek 成本计算: $%.6f", cost)
 
     cost_qwen = calculate_cost(test_usage, provider_name="qwen")
