@@ -1,0 +1,54 @@
+{
+  "id": "github-20260718-000",
+  "title": "headroomlabs-ai/headroom",
+  "source": "github",
+  "source_url": "https://github.com/headroomlabs-ai/headroom",
+  "description": "Compress tool outputs, logs, files, and RAG chunks before they reach the LLM. 20% fewer tokens for coding agents, 60-95% fewer tokens for JSON, same answers. Library, proxy, MCP server.",
+  "summary": "Compress tool outputs, logs, files, and RAG chunks before they reach the LLM. 20% fewer tokens for coding agents, 60-95% fewer tokens for JSON, same answers. Library, proxy, MCP server.",
+  "tags": [
+    "ai",
+    "placeholder"
+  ],
+  "category": "AI Application",
+  "status": "draft",
+  "language": "Python",
+  "stars": 59663,
+  "authors": [
+    "headroomlabs-ai"
+  ],
+  "collected_at": "2026-07-18T03:15:30.288573+08:00",
+  "analyzed_at": "2026-07-18T03:15:36.437908+08:00",
+  "published_at": null,
+  "innovation_score": null,
+  "difficulty_score": null,
+  "key_points": [],
+  "risks": [],
+  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-18.json",
+  "metadata": {
+    "stars": 59663,
+    "language": "Python",
+    "topics": [
+      "agent",
+      "ai",
+      "anthropic",
+      "claude-code",
+      "compression",
+      "context-engineering",
+      "context-window",
+      "cursor",
+      "fastapi",
+      "langchain",
+      "llm",
+      "mcp",
+      "openai",
+      "prompt-engineering",
+      "proxy",
+      "python",
+      "rag",
+      "token-optimization",
+      "tokens",
+      "typescript"
+    ],
+    "owner": "headroomlabs-ai"
+  }
+}
