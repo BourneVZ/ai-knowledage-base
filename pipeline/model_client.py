@@ -27,12 +27,16 @@
 from __future__ import annotations
 
 import copy
+import json
 import logging
 import os
+import re
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
 import httpx
 
@@ -42,16 +46,27 @@ import httpx
 
 
 def _load_dotenv() -> None:
-    """尝试从项目根目录加载 ``.env`` 文件。
-    True
-        不依赖 python-dotenv 也能运行，缺失时静默跳过。
+    """从项目根目录加载 ``.env`` 文件（路径固定，不依赖运行目录）。
+
+    优先使用 ``python-dotenv``；若未安装则记录警告而非静默跳过，
+    避免环境变量未注入导致下游请求失败却无任何提示。
     """
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+
     try:
         from dotenv import load_dotenv as _ld
-
-        _ld(override=True)
     except ImportError:
-        pass
+        logging.getLogger(__name__).warning(
+            "未安装 python-dotenv，无法加载 %s（请执行 pip install python-dotenv）",
+            env_path,
+        )
+        return
+
+    if env_path.is_file():
+        _ld(dotenv_path=env_path, override=True)
+        logging.getLogger(__name__).debug("已加载环境变量文件: %s", env_path)
+    else:
+        logging.getLogger(__name__).warning(".env 文件不存在: %s", env_path)
 
 
 _load_dotenv()
@@ -224,6 +239,7 @@ class LLMProvider(ABC):
         model: str | None = None,
         temperature: float = DEFAULT_TEMPERATURE,
         max_tokens: int = DEFAULT_MAX_TOKENS,
+        timeout: float = DEFAULT_TIMEOUT,
     ) -> LLMResponse:
         """发送聊天补全请求。
 
@@ -233,6 +249,7 @@ class LLMProvider(ABC):
             model: 模型名称，为 ``None`` 时使用提供商默认模型。
             temperature: 采样温度（0-2），值越高输出越随机。
             max_tokens: 生成的最大 token 数。
+            timeout: 请求超时（秒）。
 
         Returns:
             包含生成内容和用量统计的 :class:`LLMResponse`。
@@ -273,6 +290,7 @@ class OpenAICompatibleProvider(LLMProvider):
         model: str | None = None,
         temperature: float = DEFAULT_TEMPERATURE,
         max_tokens: int = DEFAULT_MAX_TOKENS,
+        timeout: float = DEFAULT_TIMEOUT,
     ) -> LLMResponse:
         """发送聊天补全请求。
 
@@ -281,6 +299,7 @@ class OpenAICompatibleProvider(LLMProvider):
             model: 模型名称，默认为提供商默认模型。
             temperature: 采样温度。
             max_tokens: 最大生成 token 数。
+            timeout: 请求超时（秒）。
 
         Returns:
             :class:`LLMResponse` 实例。
@@ -302,7 +321,7 @@ class OpenAICompatibleProvider(LLMProvider):
             "max_tokens": max_tokens,
         }
 
-        with httpx.Client(timeout=DEFAULT_TIMEOUT) as client:
+        with httpx.Client(timeout=timeout) as client:
             response = client.post(url, json=payload, headers=headers)
             response.raise_for_status()
             data: dict[str, object] = response.json()
@@ -470,6 +489,7 @@ def chat_with_retry(
     temperature: float = DEFAULT_TEMPERATURE,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     max_retries: int = MAX_RETRIES,
+    timeout: float = DEFAULT_TIMEOUT,
 ) -> LLMResponse:
     """带自动重试的聊天补全请求。
 
@@ -482,6 +502,7 @@ def chat_with_retry(
         temperature: 采样温度。
         max_tokens: 最大生成 token 数。
         max_retries: 最大重试次数（不含首次请求）。
+        timeout: 每次请求的超时（秒）。
 
     Returns:
         :class:`LLMResponse` 实例。
@@ -500,6 +521,7 @@ def chat_with_retry(
                 model=model,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                timeout=timeout,
             )
             tracker.record(response.usage, _get_provider_name())
             return response
@@ -831,6 +853,145 @@ def quick_chat(prompt: str, *, model: str | None = None) -> str:
     messages: list[dict[str, str]] = [{"role": "user", "content": prompt}]
     response = chat_with_retry(messages, model=model)
     return response.content
+
+
+def chat(
+    prompt: str,
+    *,
+    system: str = "",
+    model: str | None = None,
+    max_tokens: int = DEFAULT_MAX_TOKENS,
+    temperature: float = DEFAULT_TEMPERATURE,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> tuple[str, Usage]:
+    """发送单轮聊天请求，返回 ``(文本, Usage)`` 元组。
+
+    与 :func:`quick_chat` 的区别在于可注入 ``system`` 提示词并返回 Token 用量，
+    供工作流节点做用量追踪。
+
+    Args:
+        prompt: 用户提示词。
+        system: 可选系统提示词，为空时不注入 system 消息。
+        model: 模型名称，为 ``None`` 时使用提供商默认模型。
+        max_tokens: 最大生成 token 数。
+        temperature: 采样温度。
+        timeout: 请求超时（秒）。
+
+    Returns:
+        ``(response_text, Usage)`` 元组。
+    """
+    messages: list[dict[str, str]] = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+    response = chat_with_retry(
+        messages,
+        model=model,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        timeout=timeout,
+    )
+    return response.content, response.usage
+
+
+def _extract_json(text: str) -> Any:
+    """从 LLM 响应中鲁棒地提取 JSON 对象或数组。
+
+    兼容 markdown 代码块包裹（`` ```json ... ``` ``）、前后冗余文本等情况，
+    提取失败时返回空 dict。
+
+    Args:
+        text: LLM 原始响应文本。
+
+    Returns:
+        解析出的 JSON 对象/数组，失败时返回空 dict。
+    """
+    cleaned = text.strip()
+
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```[a-zA-Z]*\s*", "", cleaned)
+        cleaned = re.sub(r"\s*```\s*$", "", cleaned).strip()
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        pass
+
+    match = re.search(r"[\{\[][\s\S]*[\}\]]", cleaned)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            pass
+
+    logger.warning("chat_json 解析失败，返回空 dict。原文: %s", cleaned[:200])
+    return {}
+
+
+def chat_json(
+    prompt: str,
+    *,
+    system: str = "",
+    model: str | None = None,
+    max_tokens: int = DEFAULT_MAX_TOKENS,
+    temperature: float = DEFAULT_TEMPERATURE,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> tuple[Any, Usage]:
+    """发送聊天请求并将响应解析为 JSON，返回 ``(parsed, Usage)`` 元组。
+
+    Args:
+        prompt: 用户提示词。
+        system: 可选系统提示词。
+        model: 模型名称，为 ``None`` 时使用提供商默认模型。
+        max_tokens: 最大生成 token 数。
+        temperature: 采样温度。
+        timeout: 请求超时（秒）。
+
+    Returns:
+        ``(parsed_json, Usage)`` 元组；``parsed_json`` 为 dict 或 list，
+        解析失败时返回空 dict。
+    """
+    text, usage = chat(
+        prompt,
+        system=system,
+        model=model,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        timeout=timeout,
+    )
+    return _extract_json(text), usage
+
+
+def accumulate_usage(tracker: dict[str, Any], usage: Usage) -> dict[str, Any]:
+    """将单次 ``Usage`` 累加到 token 统计字典中。
+
+    按当前提供商定价累加成本到 ``total_cost_yuan``（元），
+    供工作流状态 :data:`KBState.cost_tracker` 使用。
+
+    Args:
+        tracker: 累加目标字典，约定 key 为 ``prompt_tokens``、
+            ``completion_tokens``、``total_cost_yuan``。
+        usage: 单次 API 调用的 Token 用量。
+
+    Returns:
+        累加后的同一字典（便于链式赋值）。
+    """
+    prompt_tokens = int(tracker.get("prompt_tokens", 0) or 0) + usage.prompt_tokens
+    completion_tokens = (
+        int(tracker.get("completion_tokens", 0) or 0) + usage.completion_tokens
+    )
+
+    provider = _get_provider_name()
+    pricing = _PRICE_TABLE_RMB.get(provider, {"input": 0.0, "output": 0.0})
+    cost = (
+        prompt_tokens / 1_000_000.0 * pricing["input"]
+        + completion_tokens / 1_000_000.0 * pricing["output"]
+    )
+
+    tracker["prompt_tokens"] = prompt_tokens
+    tracker["completion_tokens"] = completion_tokens
+    tracker["total_cost_yuan"] = round(cost, 6)
+    return tracker
 
 
 # ---------------------------------------------------------------------------
