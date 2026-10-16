@@ -1,13 +1,13 @@
-"""LangGraph 工作流图定义 — 采集-分析-审核流水线。
+"""LangGraph 工作流图定义 — 规划-采集-分析-审核-人工介入流水线。
 
 工作流拓扑::
 
-    collect → analyze → organize → review ─→ save (通过)
-                           ↑                 │
-                           └─────────────────┘ (未通过，最多 3 轮)
+    plan → collect → analyze → review ──通过────→ organize → END
+                                     ├─未通过──→ revise → review (循环)
+                                     └─超限────→ human_flag → END
 
-``review`` 节点通过条件边实现质量门控：审核未通过时回到 ``organize`` 重新整理，
-循环次数由状态中的 ``iteration`` 累加，达到上限后由 ``review_node`` 强制通过。
+``plan`` 节点在入口产出策略（写入 ``state["plan"]``），下游按策略调整采集量、
+过滤阈值与审核循环上限；``review`` 通过三路条件边实现质量门控，超限转人工介入。
 """
 
 from __future__ import annotations
@@ -25,30 +25,41 @@ from langgraph.graph.state import CompiledStateGraph
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from workflows.nodes import (  # noqa: E402
-    analyze_node,
-    collect_node,
-    organize_node,
-    review_node,
-    save_node,
-)
+from workflows.analyzer import analyze_node  # noqa: E402
+from workflows.collector import collect_node  # noqa: E402
+from workflows.human_flag import human_flag_node  # noqa: E402
+from workflows.organizer import organize_node  # noqa: E402
+from workflows.planner import planner_node  # noqa: E402
+from workflows.reviewer import review_node  # noqa: E402
+from workflows.reviser import revise_node  # noqa: E402
 from workflows.state import KBState  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
 
-def should_continue(state: KBState) -> str:
-    """条件路由：根据审核结果决定下一节点。
+DEFAULT_MAX_ITERATIONS: int = 3
+"""plan 未指定 max_iterations 时的兜底值。"""
+
+
+def route_after_review(state: KBState) -> str:
+    """条件路由：读 ``state["plan"]["max_iterations"]``，不再硬编码 3。
 
     Args:
         state: 工作流共享状态。
 
     Returns:
-        下一个节点名称——审核通过返回 ``"save"``，否则返回 ``"organize"``。
+        下一个节点名称——``"organize"``（通过）、``"revise"``（未通过且未超限）、
+        ``"human_flag"``（未通过且达到上限）。
     """
+    plan = state.get("plan") or {}
+    max_iterations = int(plan.get("max_iterations", DEFAULT_MAX_ITERATIONS))
+    iteration = state.get("iteration", 0)
+
     if state.get("review_passed", False):
-        return "save"
-    return "organize"
+        return "organize"
+    if iteration >= max_iterations:
+        return "human_flag"
+    return "revise"
 
 
 def build_graph() -> CompiledStateGraph[KBState, None, KBState, KBState]:
@@ -59,25 +70,33 @@ def build_graph() -> CompiledStateGraph[KBState, None, KBState, KBState]:
     """
     graph = StateGraph(KBState)
 
+    graph.add_node("plan", planner_node)
     graph.add_node("collect", collect_node)
     graph.add_node("analyze", analyze_node)
-    graph.add_node("organize", organize_node)
     graph.add_node("review", review_node)
-    graph.add_node("save", save_node)
+    graph.add_node("revise", revise_node)
+    graph.add_node("organize", organize_node)
+    graph.add_node("human_flag", human_flag_node)
 
+    graph.add_edge("plan", "collect")
     graph.add_edge("collect", "analyze")
-    graph.add_edge("analyze", "organize")
-    graph.add_edge("organize", "review")
+    graph.add_edge("analyze", "review")
 
     graph.add_conditional_edges(
         "review",
-        should_continue,
-        {"save": "save", "organize": "organize"},
+        route_after_review,
+        {
+            "organize": "organize",
+            "revise": "revise",
+            "human_flag": "human_flag",
+        },
     )
 
-    graph.add_edge("save", END)
+    graph.add_edge("revise", "review")
+    graph.add_edge("organize", END)
+    graph.add_edge("human_flag", END)
 
-    graph.set_entry_point("collect")
+    graph.set_entry_point("plan")
 
     return graph.compile()
 
@@ -100,11 +119,13 @@ if __name__ == "__main__":
     print("=" * 60)
 
     initial_state: KBState = {
+        "plan": {},
         "sources": [],
         "analyses": [],
         "articles": [],
         "review_feedback": "",
         "review_passed": False,
+        "needs_human_review": False,
         "iteration": 0,
         "cost_tracker": {},
     }
@@ -115,7 +136,14 @@ if __name__ == "__main__":
         for node_name, output in event.items():
             if isinstance(output, dict) and "cost_tracker" in output:
                 final_cost = output["cost_tracker"]
-            if node_name == "collect":
+            if node_name == "plan":
+                plan = output.get("plan", {})
+                print(
+                    f"\n--- [plan] 完成：策略={plan.get('strategy')}, "
+                    f"每源={plan.get('per_source_limit')} 条, "
+                    f"阈值={plan.get('relevance_threshold')} ---"
+                )
+            elif node_name == "collect":
                 count = len(output.get("sources", []))
                 print(f"\n--- [collect] 完成：采集 {count} 条原始数据 ---")
             elif node_name == "analyze":
@@ -123,7 +151,7 @@ if __name__ == "__main__":
                 print(f"\n--- [analyze] 完成：分析 {count} 条数据 ---")
             elif node_name == "organize":
                 count = len(output.get("articles", []))
-                print(f"\n--- [organize] 完成：整理出 {count} 条知识条目 ---")
+                print(f"\n--- [organize] 完成：整理并保存 {count} 条知识条目 ---")
             elif node_name == "review":
                 passed = output.get("review_passed")
                 iteration = output.get("iteration")
@@ -132,8 +160,11 @@ if __name__ == "__main__":
                     f"\n--- [review] 完成：通过={passed}, 迭代={iteration}, "
                     f"反馈={feedback} ---"
                 )
-            elif node_name == "save":
-                print("\n--- [save] 完成：已写入知识库 ---")
+            elif node_name == "revise":
+                count = len(output.get("analyses", []))
+                print(f"\n--- [revise] 完成：定向修改 {count} 条 analyses ---")
+            elif node_name == "human_flag":
+                print("\n--- [human_flag] 完成：已转人工介入 ---")
             else:
                 print(f"\n--- [{node_name}] 完成 ---")
 

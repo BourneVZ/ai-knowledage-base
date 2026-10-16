@@ -3,11 +3,13 @@
 所有节点共享同一个 :class:`KBState`，通过 ``TypedDict`` 保证类型安全。
 每个节点只修改自己负责的字段，实现职责隔离。
 
-数据流向::
+数据流向（V3 完整 · 7 节点）::
 
-    sources → analyses → articles → review → save
+    plan → sources → analyses → review ─[通过]→ organize → END
+                                    ├─[未通过]→ revise → review（循环）
+                                    └─[超限]──→ human_flag → END
 
-``review_loop`` 是本项目的核心教学点——展示如何用条件边实现质量门控。
+``review`` 三路条件边是本项目的核心教学点——质量门控 + 定向修改循环 + 人工介入兜底。
 """
 
 from __future__ import annotations
@@ -22,15 +24,21 @@ class KBState(TypedDict):
     原始采集记录只落在 ``knowledge/raw/``，状态中仅保留可序列化的轻量结果。
 
     Fields:
+        plan: Planner 输出的策略（下游据此调整采集量、阈值与循环上限）。
         sources: 采集阶段产出的原始候选数据（已过滤、去重后的轻量摘要，
             不含原始 HTML/API 全量响应）。
         analyses: LLM 分析后的结构化结果（每条含 summary、tags、score）。
         articles: 格式化、去重后的最终知识条目。
         review_feedback: 审核 Agent 的反馈意见（中文）。
         review_passed: 审核是否通过。
+        needs_human_review: 是否需人工介入（审核超限时置 True）。
         iteration: 当前审核循环次数（最多 3 次）。
         cost_tracker: Token 用量追踪。
     """
+
+    plan: dict[str, Any]
+    # 规划结果 — Planner 输出的策略 dict，包含 strategy/per_source_limit/
+    # relevance_threshold/max_iterations/rationale，被下游节点共同消费。
 
     sources: list[dict[str, Any]]
     # 采集结果 — 报告式摘要：仅含 title/source/source_url/description 等
@@ -51,8 +59,11 @@ class KBState(TypedDict):
     review_passed: bool
     # 审核是否通过 — 作为条件边（review → save 或 review → analyze）的判断依据。
 
+    needs_human_review: bool
+    # 是否需人工介入 — 审核循环超过上限仍未通过时由 HumanFlag 节点置 True。
+
     iteration: int
-    # 审核迭代次数 — 从 0 开始，达到上限（3）时强制通过，避免死循环。
+    # 审核迭代次数 — 从 0 开始，达到上限后转人工介入（不再强制通过）。
 
     cost_tracker: dict[str, Any]
     # Token 用量追踪 — 累加统计，约定 key：
