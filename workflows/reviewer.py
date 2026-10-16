@@ -11,6 +11,7 @@ import json
 import logging
 from typing import Any
 
+from pipeline.config import load_config
 from pipeline.model_client import accumulate_usage, chat_json
 from workflows.state import KBState
 
@@ -30,7 +31,7 @@ REVIEWER_WEIGHTS: dict[str, float] = {
 """5 个评分维度的权重（总和为 1.0），调整权重无需改动 prompt。"""
 
 REVIEWER_PASS_THRESHOLD: float = 7.0
-"""加权总分及格线，达到该值即通过。"""
+"""加权总分及格线兜底值（config.yaml 的 review.pass_threshold 可覆盖）。"""
 
 REVIEWER_SYSTEM: str = "你是严格但公正的知识库质量审核员。给出具体、可操作的反馈。"
 """审核系统提示词。"""
@@ -104,6 +105,10 @@ def review_node(state: KBState) -> dict[str, Any]:
 
     plan = state.get("plan") or {}
     max_iterations = int(plan.get("max_iterations", DEFAULT_MAX_ITERATIONS))
+    cfg = load_config()
+    pass_threshold = float(
+        cfg.get("review", {}).get("pass_threshold", REVIEWER_PASS_THRESHOLD)
+    )
 
     if iteration >= max_iterations:
         logger.warning("[Reviewer] 已达审核上限 %d 次，内部兜底通过", max_iterations)
@@ -150,7 +155,7 @@ def review_node(state: KBState) -> dict[str, Any]:
         tracker = accumulate_usage(tracker, usage)
 
         weighted_total = _weighted_score(result.get("scores", {}))
-        passed = weighted_total >= REVIEWER_PASS_THRESHOLD
+        passed = weighted_total >= pass_threshold
 
         feedback = str(result.get("feedback", ""))
         weak_dims = result.get("weak_dimensions", [])

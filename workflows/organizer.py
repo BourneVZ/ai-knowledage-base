@@ -1,4 +1,4 @@
-"""Organizer 节点（终态）— 过滤 + 去重 + 格式化 + 落盘。
+"""Organizer 节点（终态）— 过滤 + 去重（含历史）+ 格式化 + 落盘。
 
 定向修正由独立的 ``revise_node`` 负责；organize 产出 ``articles`` 并写入
 ``knowledge/articles/``（含 ``index.json``）。
@@ -21,20 +21,8 @@ logger = logging.getLogger(__name__)
 # 常量
 # ---------------------------------------------------------------------------
 
-DEFAULT_RELEVANCE_THRESHOLD: float = 0.5
-"""plan 未指定 relevance_threshold 时的过滤阈值兜底值。"""
-
-ARTICLE_FIELDS: tuple[str, ...] = (
-    "title",
-    "source",
-    "url",
-    "summary",
-    "tags",
-    "relevance_score",
-    "category",
-    "key_insight",
-)
-"""知识条目标准字段，整理阶段仅保留这些字段输出。"""
+DEFAULT_MIN_INNOVATION_SCORE: int = 2
+"""plan 未指定 min_innovation_score 时的创新分过滤阈值兜底值。"""
 
 
 # ---------------------------------------------------------------------------
@@ -81,13 +69,56 @@ def _make_article_id(source: object, date_compact: str, index: int) -> str:
     return f"{segment}-{date_compact}-{index:03d}"
 
 
+def _slugify(text: str) -> str:
+    """将文本转换为文件名安全的小写 slug（仅 ASCII 字母/数字/连字符）。
+
+    Args:
+        text: 原始文本（如仓库名、标题）。
+
+    Returns:
+        仅含小写字母、数字和连字符的 slug（中文等非 ASCII 字符会被剔除）。
+    """
+    text = text.lower().strip()
+    text = re.sub(r"[^a-z0-9\s-]", "", text)
+    text = re.sub(r"[\s_]+", "-", text)
+    text = re.sub(r"-+", "-", text)
+    return text.strip("-")[:80]
+
+
+def _load_existing_urls(articles_dir: str) -> set[str]:
+    """扫描已有文章目录，提取所有 ``source_url`` 用于历史去重。
+
+    Args:
+        articles_dir: 知识条目目录路径。
+
+    Returns:
+        已存在的 ``source_url`` 集合。
+    """
+    existing: set[str] = set()
+    if not os.path.isdir(articles_dir):
+        return existing
+    for filename in os.listdir(articles_dir):
+        if not filename.endswith(".json"):
+            continue
+        filepath = os.path.join(articles_dir, filename)
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            url = data.get("source_url", "")
+            if isinstance(url, str) and url:
+                existing.add(url)
+        except (json.JSONDecodeError, OSError):
+            logger.warning("[Organizer] 跳过无法解析的已有文章: %s", filename)
+    return existing
+
+
 # ---------------------------------------------------------------------------
 # 节点定义
 # ---------------------------------------------------------------------------
 
 
 def organize_node(state: KBState) -> dict[str, Any]:
-    """整理节点（终态）：过滤 + 去重 + 格式化 + 落盘。
+    """整理节点（终态）：过滤 + 去重（含历史）+ 格式化 + 落盘。
 
     定向修正由独立的 ``revise_node`` 负责；organize 产出 ``articles`` 并写入
     ``knowledge/articles/``（含 ``index.json``）。
@@ -102,17 +133,19 @@ def organize_node(state: KBState) -> dict[str, Any]:
     iteration = state["iteration"]
 
     plan = state.get("plan") or {}
-    relevance_threshold = _to_float(
-        plan.get("relevance_threshold", DEFAULT_RELEVANCE_THRESHOLD)
+    min_innovation_score = int(
+        plan.get("min_innovation_score", DEFAULT_MIN_INNOVATION_SCORE)
     )
 
     qualified = [
         a
         for a in state["analyses"]
-        if _to_float(a.get("relevance_score", 0)) >= relevance_threshold
+        if _to_float(a.get("innovation_score", 0)) >= min_innovation_score
     ]
 
-    seen: set[str] = set()
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    articles_dir = os.path.join(base_dir, "knowledge", "articles")
+    seen = _load_existing_urls(articles_dir)
     unique: list[dict[str, Any]] = []
     for item in qualified:
         url = str(item.get("url", ""))
@@ -121,13 +154,30 @@ def organize_node(state: KBState) -> dict[str, Any]:
             unique.append(item)
 
     date_compact = datetime.now(timezone.utc).strftime("%Y%m%d")
-    articles: list[dict[str, Any]] = [
-        {
-            "id": _make_article_id(item.get("source"), date_compact, i + 1),
-            **{k: item.get(k, "") for k in ARTICLE_FIELDS},
-        }
-        for i, item in enumerate(unique)
-    ]
+    analyzed_at = datetime.now(timezone.utc).isoformat()
+    articles: list[dict[str, Any]] = []
+    for i, item in enumerate(unique):
+        articles.append(
+            {
+                "id": _make_article_id(item.get("source"), date_compact, i + 1),
+                "title": item.get("title", ""),
+                "source": item.get("source", ""),
+                "source_url": item.get("url", ""),
+                "description": item.get("description", ""),
+                "summary": item.get("summary", ""),
+                "tags": item.get("tags", []),
+                "category": item.get("category", ""),
+                "status": "draft",
+                "stars": item.get("stars"),
+                "collected_at": item.get("collected_at", ""),
+                "analyzed_at": analyzed_at,
+                "published_at": None,
+                "innovation_score": item.get("innovation_score"),
+                "difficulty_score": item.get("difficulty_score"),
+                "key_points": item.get("key_points", []),
+                "risks": item.get("risks", []),
+            }
+        )
 
     _save_articles(articles)
     logger.info(
@@ -139,8 +189,8 @@ def organize_node(state: KBState) -> dict[str, Any]:
 def _save_articles(articles: list[dict[str, Any]]) -> None:
     """将知识条目写入 ``knowledge/articles/`` 并更新 ``index.json``。
 
-    每篇文章写为 ``{id}.json``，同时维护 ``index.json``（记录 id/title/category，
-    按 id 去重追加）。
+    每篇文章写为 ``{date}-{source}-{slug}.json``（与 V2/Agent 命名一致），
+    同时维护 ``index.json``（记录 id/title/category，按 id 去重追加）。
 
     Args:
         articles: 已格式化的知识条目列表。
@@ -153,15 +203,17 @@ def _save_articles(articles: list[dict[str, Any]]) -> None:
     articles_dir = os.path.join(base_dir, "knowledge", "articles")
     os.makedirs(articles_dir, exist_ok=True)
 
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     for article in articles:
-        aid = article.get("id")
-        if not isinstance(aid, str) or not aid:
-            continue
-        filepath = os.path.join(articles_dir, f"{aid}.json")
+        title = article.get("title", "")
+        slug = _slugify(str(title)) if title else "unknown"
+        source = str(article.get("source", "unknown")).replace("/", "_")
+        filename = f"{date_str}-{source}-{slug}.json"
+        filepath = os.path.join(articles_dir, filename)
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(article, f, ensure_ascii=False, indent=2)
 
-    index_path = os.path.join(articles_dir, "index.json")
+    index_path = os.path.join(base_dir, "knowledge", "index.json")
     index: list[dict[str, Any]] = []
     if os.path.exists(index_path):
         try:

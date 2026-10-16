@@ -1,7 +1,10 @@
-"""Collector 节点 — 从 GitHub Search API 采集 AI 相关仓库。
+"""Collector 节点 — 从 GitHub Search API 与 RSS 采集 AI 相关内容。
 
-产出报告式摘要（``title``/``url``/``description``/``stars`` 等），不携带原始
-API 全量响应；采集数量由 ``state["plan"]["per_source_limit"]`` 动态决定。
+信息源（并集）：
+- GitHub Search API（搜索词由 ``config.yaml`` 的 ``collection.github_search_query`` 决定）
+- RSS（源列表由 ``rss_sources.yaml`` 配置，每源/总量上限由 ``config.yaml`` 控制）
+
+产出报告式摘要（``title``/``url``/``description``/``stars`` 等），不携带原始全量响应。
 """
 
 from __future__ import annotations
@@ -9,10 +12,14 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from typing import Any
 
+from pipeline.config import load_config
+from pipeline.rss_sources import load_rss_sources
 from workflows.state import KBState
 
 logger = logging.getLogger(__name__)
@@ -21,16 +28,190 @@ logger = logging.getLogger(__name__)
 # 常量
 # ---------------------------------------------------------------------------
 
-GITHUB_SEARCH_URL: str = (
-    "https://api.github.com/search/repositories?q=topic:ai+topic:agent&sort=stars"
-)
-"""GitHub Search API 查询地址（不含 per_page，由 plan 动态决定）。"""
+GITHUB_API_URL: str = "https://api.github.com/search/repositories"
+"""GitHub Search API 端点（查询参数动态拼接）。"""
+
+DEFAULT_SEARCH_QUERY: str = "ai OR llm OR agent in:topics"
+"""config 未提供 github_search_query 时的兜底搜索词。"""
+
+DEFAULT_GITHUB_LIMIT: int = 10
+"""plan 未提供 github_limit 时的 GitHub 每页采集量兜底值。"""
+
+DEFAULT_RSS_PER_SOURCE_LIMIT: int = 3
+"""config 未提供 rss_per_source_limit 时的每源兜底值。"""
+
+DEFAULT_RSS_TOTAL_LIMIT: int = 10
+"""config 未提供 rss_total_limit 时的总量兜底值。"""
 
 DEFAULT_TIMEOUT: int = 15
 """网络请求超时（秒）。"""
 
-DEFAULT_PER_SOURCE_LIMIT: int = 10
-"""plan 未指定 per_source_limit 时的每源采集量兜底值。"""
+MAX_RETRIES: int = 2
+"""采集请求最大重试次数。"""
+
+DESCRIPTION_MAX_LENGTH: int = 300
+"""RSS 描述最大长度（字符），截断过长描述以控制下游分析 prompt 体积。"""
+
+
+# ---------------------------------------------------------------------------
+# 工具函数
+# ---------------------------------------------------------------------------
+
+
+def _http_get(url: str, headers: dict[str, str] | None = None) -> str:
+    """带简单重试的 HTTP GET（urllib）。
+
+    Args:
+        url: 请求地址。
+        headers: 可选请求头。
+
+    Returns:
+        响应文本。
+
+    Raises:
+        RuntimeError: 全部尝试失败。
+    """
+    last_error: Exception | None = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            req = urllib.request.Request(url, headers=headers or {})
+            with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as resp:
+                return str(resp.read().decode("utf-8"))
+        except Exception as e:
+            last_error = e
+            logger.warning(
+                "[Collector] 请求失败 (attempt %d/%d): %s — %s",
+                attempt + 1,
+                MAX_RETRIES,
+                url,
+                e,
+            )
+    raise RuntimeError(f"采集请求失败: {url}") from last_error
+
+
+def _collect_github(query: str, github_limit: int) -> list[dict[str, Any]]:
+    """从 GitHub Search API 采集 AI 相关仓库。
+
+    Args:
+        query: GitHub 搜索词（q 参数）。
+        github_limit: 每页采集条数上限。
+
+    Returns:
+        采集到的仓库列表。
+    """
+    params = urllib.parse.urlencode(
+        {"q": query, "sort": "stars", "per_page": github_limit}, safe=":"
+    )
+    url = f"{GITHUB_API_URL}?{params}"
+    headers: dict[str, str] = {"Accept": "application/vnd.github.v3+json"}
+    token = os.getenv("GITHUB_TOKEN", "")
+    if token:
+        headers["Authorization"] = f"token {token}"
+
+    try:
+        data: dict[str, object] = json.loads(_http_get(url, headers=headers))
+    except Exception as e:
+        logger.error("[Collector] GitHub 采集失败: %s", e)
+        return []
+
+    sources: list[dict[str, Any]] = []
+    items = data.get("items")
+    if isinstance(items, list):
+        for repo in items:
+            if not isinstance(repo, dict):
+                continue
+            sources.append(
+                {
+                    "source": "github",
+                    "title": repo.get("full_name", ""),
+                    "url": repo.get("html_url", ""),
+                    "description": repo.get("description", ""),
+                    "stars": repo.get("stargazers_count", 0),
+                    "collected_at": datetime.now(timezone.utc).isoformat(),
+                }
+            )
+    return sources
+
+
+def _collect_rss(per_source_limit: int, total_limit: int) -> list[dict[str, Any]]:
+    """从配置的 RSS 源采集 AI 相关内容（同时控制每源上限与总量上限）。
+
+    Args:
+        per_source_limit: 每个 feed 最多取几条。
+        total_limit: 所有 feed 累计最多取几条。
+
+    Returns:
+        采集到的条目列表。
+    """
+    collected_at = datetime.now(timezone.utc).isoformat()
+    sources: list[dict[str, Any]] = []
+    for name, feed_url in load_rss_sources().items():
+        if len(sources) >= total_limit:
+            break
+        try:
+            xml_text = _http_get(feed_url)
+        except Exception as e:
+            logger.error("[Collector] RSS 源 %s 请求失败: %s", name, e)
+            continue
+        per_source_count = 0
+        for item in _parse_rss_items(xml_text):
+            if len(sources) >= total_limit or per_source_count >= per_source_limit:
+                break
+            title = item.get("title", "")
+            link = item.get("link", "")
+            if not title or not link:
+                continue
+            sources.append(
+                {
+                    "source": f"rss/{name}",
+                    "title": title,
+                    "url": link,
+                    "description": _strip_html(item.get("description", ""))[
+                        :DESCRIPTION_MAX_LENGTH
+                    ],
+                    "stars": None,
+                    "collected_at": collected_at,
+                }
+            )
+            per_source_count += 1
+    return sources
+
+
+def _parse_rss_items(xml_text: str) -> list[dict[str, str]]:
+    """用正则从 RSS XML 中提取所有 ``<item>`` 块的标题/链接/描述。"""
+    items: list[dict[str, str]] = []
+    item_blocks = re.findall(r"<item>(.*?)</item>", xml_text, re.DOTALL)
+    for block in item_blocks:
+        title_match = re.search(r"<title>(.*?)</title>", block, re.DOTALL)
+        link_match = re.search(r"<link>(.*?)</link>", block, re.DOTALL)
+        desc_match = re.search(r"<description>(.*?)</description>", block, re.DOTALL)
+        items.append(
+            {
+                "title": _decode_xml(title_match.group(1).strip())
+                if title_match
+                else "",
+                "link": link_match.group(1).strip() if link_match else "",
+                "description": _decode_xml(desc_match.group(1).strip())
+                if desc_match
+                else "",
+            }
+        )
+    return items
+
+
+def _decode_xml(text: str) -> str:
+    """简易 XML 实体解码（CDATA + 常见实体）。"""
+    cdata_match = re.match(r"<!\[CDATA\[(.*?)\]\]>", text, re.DOTALL)
+    if cdata_match:
+        text = cdata_match.group(1)
+    text = text.replace("&lt;", "<").replace("&gt;", ">")
+    text = text.replace("&amp;", "&").replace("&quot;", '"').replace("&apos;", "'")
+    return text
+
+
+def _strip_html(text: str) -> str:
+    """去除 HTML 标签。"""
+    return re.sub(r"<[^>]*>", "", text).strip()
 
 
 # ---------------------------------------------------------------------------
@@ -39,10 +220,7 @@ DEFAULT_PER_SOURCE_LIMIT: int = 10
 
 
 def collect_node(state: KBState) -> dict[str, Any]:
-    """采集节点：调用 GitHub Search API 获取 AI 相关仓库。
-
-    产出报告式摘要（``title``/``url``/``description``/``stars`` 等），
-    不携带原始 API 全量响应。
+    """采集节点：采集 GitHub Search + RSS，产出 ``sources``。
 
     Args:
         state: 工作流共享状态。
@@ -50,41 +228,18 @@ def collect_node(state: KBState) -> dict[str, Any]:
     Returns:
         部分状态更新，仅包含 ``sources`` 字段。
     """
-    logger.info("[Collector] 开始采集 GitHub AI 相关仓库")
-    sources: list[dict[str, Any]] = []
-
+    logger.info("[Collector] 开始采集 GitHub + RSS")
     plan = state.get("plan") or {}
-    per_source_limit = int(plan.get("per_source_limit", DEFAULT_PER_SOURCE_LIMIT))
-    url = f"{GITHUB_SEARCH_URL}&per_page={per_source_limit}"
+    cfg = load_config()
+    coll = cfg.get("collection", {})
 
-    headers: dict[str, str] = {"Accept": "application/vnd.github.v3+json"}
-    token = os.getenv("GITHUB_TOKEN", "")
-    if token:
-        headers["Authorization"] = f"token {token}"
+    github_limit = int(plan.get("github_limit", DEFAULT_GITHUB_LIMIT))
+    github_query = str(coll.get("github_search_query", DEFAULT_SEARCH_QUERY))
+    rss_per_source = int(coll.get("rss_per_source_limit", DEFAULT_RSS_PER_SOURCE_LIMIT))
+    rss_total = int(coll.get("rss_total_limit", DEFAULT_RSS_TOTAL_LIMIT))
 
-    try:
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as resp:
-            data: dict[str, object] = json.loads(resp.read().decode())
-
-        items = data.get("items")
-        if isinstance(items, list):
-            for repo in items:
-                if not isinstance(repo, dict):
-                    continue
-                sources.append(
-                    {
-                        "source": "github",
-                        "title": repo.get("full_name", ""),
-                        "url": repo.get("html_url", ""),
-                        "description": repo.get("description", ""),
-                        "stars": repo.get("stargazers_count", 0),
-                        "collected_at": datetime.now(timezone.utc).isoformat(),
-                    }
-                )
-    except Exception as e:
-        logger.error("[Collector] GitHub 采集失败: %s", e)
-        sources.append({"source": "github", "title": "[ERROR]", "description": str(e)})
+    sources = _collect_github(github_query, github_limit)
+    sources += _collect_rss(rss_per_source, rss_total)
 
     logger.info("[Collector] 采集到 %d 条原始数据", len(sources))
     return {"sources": sources}

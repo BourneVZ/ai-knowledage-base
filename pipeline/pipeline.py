@@ -25,13 +25,9 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, TypedDict
+from urllib.parse import quote_plus
 
 import httpx
-
-try:
-    import yaml  # type: ignore[import-untyped]
-except ImportError:
-    yaml = None  # type: ignore[assignment]
 
 try:
     from .model_client import chat_with_retry, tracker  # type: ignore[assignment]
@@ -39,9 +35,14 @@ except ImportError:
     from model_client import chat_with_retry, tracker  # type: ignore[no-redef]
 
 try:
-    from .model_client import create_provider  # type: ignore[assignment]
+    from .rss_sources import load_rss_sources  # type: ignore[assignment]
 except ImportError:
-    from model_client import create_provider  # type: ignore[no-redef]
+    from rss_sources import load_rss_sources  # type: ignore[no-redef]
+
+try:
+    from .config import load_config, resolve_plan  # type: ignore[assignment]
+except ImportError:
+    from config import load_config, resolve_plan  # type: ignore[no-redef]
 
 # ---------------------------------------------------------------------------
 # 日志
@@ -59,71 +60,11 @@ ARTICLES_DIR: Path = PROJECT_ROOT / "knowledge" / "articles"
 DEFAULT_TIMEOUT: float = 30.0
 MAX_RETRIES: int = 3
 GITHUB_API_BASE: str = "https://api.github.com"
-GITHUB_SEARCH_QUERY: str = "ai agent llm in:name,description"
+DEFAULT_GITHUB_QUERY: str = "ai OR llm OR agent in:topics"
+"""config 未提供 github_search_query 时的兜底搜索词。"""
 
-RSS_SOURCES: dict[str, str] = {
-    "hn": "https://hnrss.org/newest?q=ai+OR+llm+OR+agent+OR+machine+learning",
-    "arxiv": "https://rss.arxiv.org/rss/cs.AI",
-}
-
-DEFAULT_RSS_CONFIG: Path = Path(__file__).resolve().parent / "rss_sources.yaml"
-
-
-def _load_rss_config(yaml_path: Path | None = None) -> dict[str, str]:
-    """从 YAML 配置文件加载启用的 RSS 源。
-
-    若 PyYAML 未安装或文件缺失，回退到硬编码默认值。
-
-    Args:
-        yaml_path: YAML 配置文件路径，为 ``None`` 时使用默认路径。
-
-    Returns:
-        RSS 源名称到 URL 的映射。
-    """
-    if yaml is None:
-        logger.info("PyYAML 未安装，使用内置默认 RSS 源")
-        return dict(RSS_SOURCES)
-
-    path = yaml_path or DEFAULT_RSS_CONFIG
-    if not path.is_file():
-        logger.warning("RSS 配置文件 %s 不存在，使用内置默认 RSS 源", path)
-        return dict(RSS_SOURCES)
-
-    try:
-        with path.open("r", encoding="utf-8") as f:
-            data: dict[str, object] = yaml.safe_load(f)
-    except Exception as e:
-        logger.warning("RSS 配置文件解析失败: %s，使用内置默认 RSS 源", e)
-        return dict(RSS_SOURCES)
-
-    if not isinstance(data, dict):
-        logger.warning("RSS 配置文件格式错误，使用内置默认 RSS 源")
-        return dict(RSS_SOURCES)
-
-    raw_sources: object = data.get("sources")
-    if not isinstance(raw_sources, list):
-        logger.warning("RSS 配置缺少 sources 列表，使用内置默认 RSS 源")
-        return dict(RSS_SOURCES)
-
-    enabled: dict[str, str] = {}
-    for src in raw_sources:
-        if not isinstance(src, dict):
-            continue
-        if not src.get("enabled", False):
-            continue
-        name: object = src.get("name")
-        url: object = src.get("url")
-        if isinstance(name, str) and isinstance(url, str) and name and url:
-            enabled[name] = url
-
-    if not enabled:
-        logger.warning("RSS 配置中没有启用的源，使用内置默认 RSS 源")
-        return dict(RSS_SOURCES)
-
-    logger.info("从 %s 加载了 %d 个 RSS 源", path, len(enabled))
-    for name, url in enabled.items():
-        logger.debug("  %s → %s", name, url)
-    return enabled
+DESCRIPTION_MAX_LENGTH: int = 300
+"""RSS 描述最大长度（字符），截断过长描述以控制下游分析 prompt 体积。"""
 
 
 VALID_SOURCES: frozenset[str] = frozenset({"github", "rss", "hn", "arxiv"})
@@ -283,11 +224,15 @@ def _load_existing_urls(articles_dir: Path) -> set[str]:
     for fpath in articles_dir.glob("*.json"):
         try:
             data = json.loads(fpath.read_text(encoding="utf-8"))
-            url = data.get("source_url", "")
-            if isinstance(url, str) and url:
-                existing.add(url)
         except (json.JSONDecodeError, OSError):
             logger.warning("跳过无法解析的已有文章: %s", fpath)
+            continue
+        if not isinstance(data, dict):
+            logger.debug("跳过非文章对象文件: %s", fpath)
+            continue
+        url = data.get("source_url", "")
+        if isinstance(url, str) and url:
+            existing.add(url)
     return existing
 
 
@@ -399,18 +344,19 @@ def collect_github(
     if github_token:
         headers["Authorization"] = f"Bearer {github_token}"
 
-    params: dict[str, str | int] = {
-        "q": GITHUB_SEARCH_QUERY,
-        "sort": "stars",
-        "order": "desc",
-        "per_page": min(limit, 100),
-    }
-
-    logger.info(
-        "采集 GitHub: q=%s, per_page=%d", GITHUB_SEARCH_QUERY, params["per_page"]
+    cfg = load_config()
+    query = str(
+        cfg.get("collection", {}).get("github_search_query", DEFAULT_GITHUB_QUERY)
     )
+    q = quote_plus(query, safe=":")
+    url = (
+        f"{GITHUB_API_BASE}/search/repositories"
+        f"?q={q}&sort=stars&order=desc&per_page={min(limit, 100)}"
+    )
+
+    logger.info("采集 GitHub: q=%s, per_page=%d", query, min(limit, 100))
     try:
-        resp_text = _http_get(url, headers=headers, params=params)
+        resp_text = _http_get(url, headers=headers)
     except httpx.HTTPError as e:
         logger.error("GitHub 搜索请求失败: %s", e)
         return []
@@ -469,26 +415,30 @@ def collect_github(
 
 def collect_rss(
     sources: dict[str, str] | None = None,
-    limit: int = 20,
+    per_source_limit: int = 3,
+    total_limit: int = 10,
 ) -> list[CollectedItem]:
     """从 RSS 源采集 AI 相关内容。
 
     使用简易正则解析 RSS XML，不依赖 feedparser。
 
     Args:
-        sources: RSS 源名称到 URL 的映射，默认为 :data:`RSS_SOURCES`。
-        limit: 每个源的最大返回条数。
+        sources: RSS 源名称到 URL 的映射，默认为 :func:`load_rss_sources` 的结果。
+        per_source_limit: 每个源的最大返回条数。
+        total_limit: 所有源累计的最大返回条数。
 
     Returns:
         ``CollectedItem`` 列表。
     """
     if sources is None:
-        sources = RSS_SOURCES
+        sources = load_rss_sources()
 
     collected_at = _now_iso()
     results: list[CollectedItem] = []
 
     for name, feed_url in sources.items():
+        if len(results) >= total_limit:
+            break
         logger.info("采集 RSS: name=%s, url=%s", name, feed_url)
         try:
             resp_text = _http_get(feed_url)
@@ -499,8 +449,9 @@ def collect_rss(
         items = _parse_rss_items(resp_text)
         logger.info("RSS %s 解析出 %d 条条目", name, len(items))
 
-        for idx, item in enumerate(items):
-            if idx >= limit:
+        per_source_count = 0
+        for item in items:
+            if len(results) >= total_limit or per_source_count >= per_source_limit:
                 break
             title = item.get("title", "")
             link = item.get("link", "")
@@ -512,7 +463,7 @@ def collect_rss(
                     title=title,
                     url=link,
                     source=f"rss/{name}",
-                    description=_strip_html(description),
+                    description=_strip_html(description)[:DESCRIPTION_MAX_LENGTH],
                     metadata={
                         "rss_source": name,
                         "pub_date": item.get("pub_date", ""),
@@ -520,6 +471,7 @@ def collect_rss(
                     collected_at=collected_at,
                 )
             )
+            per_source_count += 1
 
     logger.info("RSS 采集完成，共 %d 条", len(results))
     return results
@@ -834,18 +786,20 @@ def organize_items(
     items: list[AnalyzedItem],
     raw_path: str,
     articles_dir: Path,
+    min_innovation_score: int = 2,
 ) -> list[AnalyzedItem]:
-    """去重 + 格式标准化 + 字段补全。
+    """去重 + 创新分过滤 + 格式标准化 + 字段补全。
 
+    - 按 ``innovation_score`` 过滤低创新条目（仅当分数为有效数字时）。
     - 按 ``source_url`` 去重（包括已有文章目录中的历史 URL）。
     - 为每条条目补全 ``raw_path``。
     - 确保 all required fields present。
-    - 过滤缺少必填字段的条目。
 
     Args:
         items: 分析阶段产出的条目列表。
         raw_path: 原始数据文件相对路径。
         articles_dir: 知识条目目录，用于扫描已有 URL 去重。
+        min_innovation_score: 创新分过滤阈值（低于该值的条目被丢弃）。
 
     Returns:
         整理后的条目列表。
@@ -855,6 +809,16 @@ def organize_items(
     skipped = 0
 
     for item in items:
+        score = item.get("innovation_score")
+        if (
+            isinstance(score, (int, float))
+            and not isinstance(score, bool)
+            and score < min_innovation_score
+        ):
+            skipped += 1
+            logger.debug("创新分过滤跳过: %s (score=%s)", item.get("title"), score)
+            continue
+
         url = item.get("source_url", "")
         if url in seen_urls:
             skipped += 1
@@ -947,7 +911,6 @@ def save_items(
     ARTICLES_DIR.mkdir(parents=True, exist_ok=True)
 
     date_str = _today_str()
-    date_compact = _today_str_compact()
 
     if collected_items:
         raw_file = RAW_DIR / f"github-trending-{date_str}.json"
@@ -996,7 +959,7 @@ def run_pipeline(
 
     Args:
         sources: 数据来源列表（``github``、``rss``）。
-        limit: 每个来源的最大采集条数。
+        limit: 全局采集总量上限（默认 20，硬上限 20）。
         dry_run: 干跑模式开关。
         github_token: GitHub 个人访问令牌。
         rss_config: RSS 配置文件路径，为 ``None`` 时使用默认配置。
@@ -1004,18 +967,33 @@ def run_pipeline(
     logger.info("=" * 60)
     logger.info("流水线启动: sources=%s, limit=%d, dry_run=%s", sources, limit, dry_run)
 
+    plan = resolve_plan()
+    cfg = load_config()
+    coll = cfg.get("collection", {})
+
+    github_limit = min(int(plan.get("github_limit", 10)), limit)
+    rss_per_source = int(coll.get("rss_per_source_limit", 3))
+    rss_total = int(coll.get("rss_total_limit", 10))
+    min_innovation = int(plan.get("min_innovation_score", 2))
+
     date_str = _today_str()
     raw_path = str(RAW_DIR / f"all-{date_str}.json")
 
     # ---- Step 1: 采集 ----
     all_collected: list[CollectedItem] = []
     if "github" in sources:
-        gh_items = collect_github(limit=limit, github_token=github_token)
+        gh_items = collect_github(limit=github_limit, github_token=github_token)
         all_collected.extend(gh_items)
     if "rss" in sources:
-        rss_sources = _load_rss_config(rss_config)
-        rss_items = collect_rss(sources=rss_sources, limit=limit)
+        rss_sources = load_rss_sources(rss_config)
+        rss_items = collect_rss(
+            sources=rss_sources,
+            per_source_limit=rss_per_source,
+            total_limit=rss_total,
+        )
         all_collected.extend(rss_items)
+
+    all_collected = all_collected[:limit]
 
     if not all_collected:
         logger.warning("采集结果为空，流水线终止")
@@ -1028,7 +1006,9 @@ def run_pipeline(
     logger.info("Step 2 分析完成: 共 %d 条", len(analyzed))
 
     # ---- Step 3: 整理 ----
-    organized = organize_items(analyzed, raw_path, ARTICLES_DIR)
+    organized = organize_items(
+        analyzed, raw_path, ARTICLES_DIR, min_innovation_score=min_innovation
+    )
     if not organized:
         logger.warning("整理后无有效条目，流水线终止")
         return
@@ -1078,7 +1058,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--limit",
         type=int,
         default=20,
-        help="每个来源的最大采集条数 (默认: 20)",
+        help="全局采集总量上限 (默认: 20)",
     )
     parser.add_argument(
         "--dry-run",
@@ -1100,7 +1080,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--rss-config",
         type=Path,
         default=None,
-        help="RSS 源配置文件路径 (YAML，默认: pipeline/rss_sources.yaml)",
+        help="RSS 源配置文件路径 (YAML，默认: 项目根目录 rss_sources.yaml)",
     )
     return parser.parse_args(argv)
 
@@ -1129,6 +1109,8 @@ def main(argv: list[str] | None = None) -> int:
         退出码（0 成功，1 失败）。
     """
     args = _parse_args(argv)
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     _setup_logging(verbose=args.verbose)
 
     source_list = [s.strip().lower() for s in args.sources.split(",") if s.strip()]

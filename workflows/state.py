@@ -37,8 +37,8 @@ class KBState(TypedDict):
     """
 
     plan: dict[str, Any]
-    # 规划结果 — Planner 输出的策略 dict，包含 strategy/per_source_limit/
-    # relevance_threshold/max_iterations/rationale，被下游节点共同消费。
+    # 规划结果 — Planner 输出的策略 dict，包含 strategy/github_limit/
+    # min_innovation_score/max_iterations/rationale，被下游节点共同消费。
 
     sources: list[dict[str, Any]]
     # 采集结果 — 报告式摘要：仅含 title/source/source_url/description 等

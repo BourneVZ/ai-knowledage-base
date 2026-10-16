@@ -1,0 +1,35 @@
+# ============================================================
+# AI 知识库采集配置（V2 流水线 / V3 工作流共用）
+# ============================================================
+
+collection:
+  # GitHub Search API 搜索词（q 参数）：抓 AI/LLM/Agent 相关热点项目
+  # 注意：GitHub 的 OR 只作用于文本字段、不能组合 topic: 限定符；
+  # 用「关键词 OR ... in:topics」实现话题并集（含任一话题的仓库）
+  github_search_query: "ai OR llm OR agent in:topics"
+  # RSS 每个源最多采集条数（单 feed 上限）
+  rss_per_source_limit: 3
+  # RSS 所有源累计最多采集条数（总量上限）
+  rss_total_limit: 10
+
+plan:
+  # 目标文章总量：>=20 用 full 档 / >=10 用 standard 档 / 其余 lite 档
+  target_count: 10
+  # 各档位参数（github_limit 为 GitHub 每页采集条数）
+  tiers:
+    lite:
+      github_limit: 5          # GitHub 每页采集条数
+      min_innovation_score: 3  # 创新分过滤阈值（低于则丢弃）
+      max_iterations: 1        # 审核循环上限
+    standard:
+      github_limit: 10
+      min_innovation_score: 2
+      max_iterations: 2
+    full:
+      github_limit: 20
+      min_innovation_score: 1
+      max_iterations: 3
+
+review:
+  # 审核加权总分及格线（>= 该值通过审核）
+  pass_threshold: 7.0

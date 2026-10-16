@@ -140,8 +140,8 @@ if __name__ == "__main__":
                 plan = output.get("plan", {})
                 print(
                     f"\n--- [plan] 完成：策略={plan.get('strategy')}, "
-                    f"每源={plan.get('per_source_limit')} 条, "
-                    f"阈值={plan.get('relevance_threshold')} ---"
+                    f"GitHub每页={plan.get('github_limit')} 条, "
+                    f"创新分阈值={plan.get('min_innovation_score')} ---"
                 )
             elif node_name == "collect":
                 count = len(output.get("sources", []))
