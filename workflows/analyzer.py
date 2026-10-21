@@ -11,6 +11,7 @@ import logging
 from typing import Any
 
 from core.llm import accumulate_usage, chat_json
+from safeguards.cost_guard import BudgetExceededError
 from workflows.state import KBState, restore_factual_fields
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,8 @@ def analyze_node(state: KBState) -> dict[str, Any]:
         if not title:
             continue
 
-        prompt = f"""请分析以下技术项目，用 JSON 格式返回（仅输出 JSON，不要 markdown 代码块）：
+        prompt = f"""请分析以下技术项目，用 JSON 格式返回
+（仅输出 JSON，不要 markdown 代码块）：
 
 项目名: {title}
 描述: {item.get("description", "无描述")}
@@ -58,9 +60,12 @@ def analyze_node(state: KBState) -> dict[str, Any]:
 - risks 为 1-2 个潜在局限（中文短语，如无则空数组）"""
 
         try:
-            result, usage = chat_json(prompt)
+            result, usage = chat_json(prompt, node_name="analyze")
             tracker = accumulate_usage(tracker, usage)
             analyses.append(restore_factual_fields({**item, **result}, item))
+        except BudgetExceededError:
+            # 预算熔断必须穿透，不能降级为「分析失败」继续烧钱
+            raise
         except Exception as e:
             logger.error("[Analyzer] 分析失败: %s - %s", title, e)
             analyses.append(

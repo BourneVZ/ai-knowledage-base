@@ -40,6 +40,8 @@ from typing import Any
 
 import httpx
 
+from safeguards.cost_guard import CostGuard
+
 # ---------------------------------------------------------------------------
 # .env 自动加载
 # ---------------------------------------------------------------------------
@@ -825,6 +827,49 @@ tracker = CostTracker()
 
 
 # ---------------------------------------------------------------------------
+# CostGuard — 预算守卫（懒加载单例）
+# ---------------------------------------------------------------------------
+
+ENV_BUDGET_YUAN: str = "BUDGET_YUAN"
+"""单次运行预算（元）的环境变量名。"""
+
+DEFAULT_BUDGET_YUAN: float = 1.0
+"""未设置 ``BUDGET_YUAN`` 时的默认预算（元）。"""
+
+_cost_guard: CostGuard | None = None
+"""全局 CostGuard 单例，首次调用 :func:`get_cost_guard` 时创建。"""
+
+
+def get_cost_guard() -> CostGuard:
+    """获取全局 :class:`CostGuard` 实例（首次调用创建，后续复用）。
+
+    预算从环境变量 ``BUDGET_YUAN`` 读取（默认 1.0 元）；输入/输出计价取自
+    当前提供商在 :data:`_PRICE_TABLE_RMB` 中的定价，保证熔断阈值与实际
+    调用成本一致。
+
+    Returns:
+        全局唯一的 :class:`CostGuard` 实例。
+    """
+    global _cost_guard
+    if _cost_guard is None:
+        pricing = _PRICE_TABLE_RMB.get(
+            _get_provider_name(), {"input": 1.0, "output": 2.0}
+        )
+        _cost_guard = CostGuard(
+            budget_yuan=_env_float(ENV_BUDGET_YUAN, DEFAULT_BUDGET_YUAN),
+            input_price_per_million=pricing["input"],
+            output_price_per_million=pricing["output"],
+        )
+        logger.info(
+            "CostGuard 初始化: 预算=¥%.2f, 计价=%.1f/%.1f 元/M tokens",
+            _cost_guard.budget_yuan,
+            pricing["input"],
+            pricing["output"],
+        )
+    return _cost_guard
+
+
+# ---------------------------------------------------------------------------
 # 便捷函数
 # ---------------------------------------------------------------------------
 
@@ -863,11 +908,14 @@ def chat(
     max_tokens: int = DEFAULT_MAX_TOKENS,
     temperature: float = DEFAULT_TEMPERATURE,
     timeout: float = DEFAULT_TIMEOUT,
+    node_name: str = "unknown",
 ) -> tuple[str, Usage]:
     """发送单轮聊天请求，返回 ``(文本, Usage)`` 元组。
 
     与 :func:`quick_chat` 的区别在于可注入 ``system`` 提示词并返回 Token 用量，
-    供工作流节点做用量追踪。
+    供工作流节点做用量追踪。每次调用完成后会向全局 CostGuard 登记成本，
+    累计超出 ``BUDGET_YUAN`` 预算时抛出
+    :class:`safeguards.cost_guard.BudgetExceededError` 熔断流水线。
 
     Args:
         prompt: 用户提示词。
@@ -876,9 +924,14 @@ def chat(
         max_tokens: 最大生成 token 数。
         temperature: 采样温度。
         timeout: 请求超时（秒）。
+        node_name: 发起调用的节点名（如 ``"analyze"``），用于成本按节点归因，
+            默认 ``"unknown"`` 以兼容不传该参数的旧调用方。
 
     Returns:
         ``(response_text, Usage)`` 元组。
+
+    Raises:
+        safeguards.cost_guard.BudgetExceededError: 累计成本超出预算。
     """
     messages: list[dict[str, str]] = []
     if system:
@@ -891,6 +944,9 @@ def chat(
         max_tokens=max_tokens,
         timeout=timeout,
     )
+    guard = get_cost_guard()
+    guard.record(node_name, response.usage, response.model)
+    guard.check()
     return response.content, response.usage
 
 
@@ -936,6 +992,7 @@ def chat_json(
     max_tokens: int = DEFAULT_MAX_TOKENS,
     temperature: float = DEFAULT_TEMPERATURE,
     timeout: float = DEFAULT_TIMEOUT,
+    node_name: str = "unknown",
 ) -> tuple[Any, Usage]:
     """发送聊天请求并将响应解析为 JSON，返回 ``(parsed, Usage)`` 元组。
 
@@ -946,10 +1003,14 @@ def chat_json(
         max_tokens: 最大生成 token 数。
         temperature: 采样温度。
         timeout: 请求超时（秒）。
+        node_name: 发起调用的节点名，透传给 :func:`chat` 做成本归因。
 
     Returns:
         ``(parsed_json, Usage)`` 元组；``parsed_json`` 为 dict 或 list，
         解析失败时返回空 dict。
+
+    Raises:
+        safeguards.cost_guard.BudgetExceededError: 累计成本超出预算。
     """
     text, usage = chat(
         prompt,
@@ -958,6 +1019,7 @@ def chat_json(
         max_tokens=max_tokens,
         temperature=temperature,
         timeout=timeout,
+        node_name=node_name,
     )
     return _extract_json(text), usage
 

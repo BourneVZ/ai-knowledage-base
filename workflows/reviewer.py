@@ -13,6 +13,7 @@ from typing import Any
 
 from core.config import load_config
 from core.llm import accumulate_usage, chat_json
+from safeguards.cost_guard import BudgetExceededError
 from workflows.state import KBState
 
 logger = logging.getLogger(__name__)
@@ -151,6 +152,7 @@ def review_node(state: KBState) -> dict[str, Any]:
             prompt,
             system=REVIEWER_SYSTEM,
             temperature=REVIEWER_TEMPERATURE,
+            node_name="review",
         )
         tracker = accumulate_usage(tracker, usage)
 
@@ -168,6 +170,9 @@ def review_node(state: KBState) -> dict[str, Any]:
             passed,
             iteration + 1,
         )
+    except BudgetExceededError:
+        # 预算熔断必须穿透，不能「自动通过」继续走完后续节点
+        raise
     except Exception as e:
         logger.error("[Reviewer] 审核 LLM 调用失败，自动通过: %s", e)
         passed = True

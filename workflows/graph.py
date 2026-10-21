@@ -25,6 +25,8 @@ from langgraph.graph.state import CompiledStateGraph
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from core.llm import get_cost_guard  # noqa: E402
+from safeguards.cost_guard import BudgetExceededError  # noqa: E402
 from workflows.analyzer import analyze_node  # noqa: E402
 from workflows.collector import collect_node  # noqa: E402
 from workflows.human_flag import human_flag_node  # noqa: E402
@@ -131,42 +133,58 @@ if __name__ == "__main__":
     }
 
     final_cost: dict[str, Any] = {}
+    guard = get_cost_guard()
 
-    for event in app.stream(initial_state):
-        for node_name, output in event.items():
-            if isinstance(output, dict) and "cost_tracker" in output:
-                final_cost = output["cost_tracker"]
-            if node_name == "plan":
-                plan = output.get("plan", {})
-                print(
-                    f"\n--- [plan] 完成：策略={plan.get('strategy')}, "
-                    f"GitHub每页={plan.get('github_limit')} 条, "
-                    f"创新分阈值={plan.get('min_innovation_score')} ---"
-                )
-            elif node_name == "collect":
-                count = len(output.get("sources", []))
-                print(f"\n--- [collect] 完成：采集 {count} 条原始数据 ---")
-            elif node_name == "analyze":
-                count = len(output.get("analyses", []))
-                print(f"\n--- [analyze] 完成：分析 {count} 条数据 ---")
-            elif node_name == "organize":
-                count = len(output.get("articles", []))
-                print(f"\n--- [organize] 完成：整理并保存 {count} 条知识条目 ---")
-            elif node_name == "review":
-                passed = output.get("review_passed")
-                iteration = output.get("iteration")
-                feedback = output.get("review_feedback", "")
-                print(
-                    f"\n--- [review] 完成：通过={passed}, 迭代={iteration}, "
-                    f"反馈={feedback} ---"
-                )
-            elif node_name == "revise":
-                count = len(output.get("analyses", []))
-                print(f"\n--- [revise] 完成：定向修改 {count} 条 analyses ---")
-            elif node_name == "human_flag":
-                print("\n--- [human_flag] 完成：已转人工介入 ---")
-            else:
-                print(f"\n--- [{node_name}] 完成 ---")
+    try:
+        for event in app.stream(initial_state):
+            for node_name, output in event.items():
+                if isinstance(output, dict) and "cost_tracker" in output:
+                    final_cost = output["cost_tracker"]
+                if node_name == "plan":
+                    plan = output.get("plan", {})
+                    print(
+                        f"\n--- [plan] 完成：策略={plan.get('strategy')}, "
+                        f"GitHub每页={plan.get('github_limit')} 条, "
+                        f"创新分阈值={plan.get('min_innovation_score')} ---"
+                    )
+                elif node_name == "collect":
+                    count = len(output.get("sources", []))
+                    print(f"\n--- [collect] 完成：采集 {count} 条原始数据 ---")
+                elif node_name == "analyze":
+                    count = len(output.get("analyses", []))
+                    print(f"\n--- [analyze] 完成：分析 {count} 条数据 ---")
+                elif node_name == "organize":
+                    count = len(output.get("articles", []))
+                    print(f"\n--- [organize] 完成：整理并保存 {count} 条知识条目 ---")
+                elif node_name == "review":
+                    passed = output.get("review_passed")
+                    iteration = output.get("iteration")
+                    feedback = output.get("review_feedback", "")
+                    print(
+                        f"\n--- [review] 完成：通过={passed}, 迭代={iteration}, "
+                        f"反馈={feedback} ---"
+                    )
+                elif node_name == "revise":
+                    count = len(output.get("analyses", []))
+                    print(f"\n--- [revise] 完成：定向修改 {count} 条 analyses ---")
+                elif node_name == "human_flag":
+                    print("\n--- [human_flag] 完成：已转人工介入 ---")
+                else:
+                    print(f"\n--- [{node_name}] 完成 ---")
+    except BudgetExceededError as e:
+        print(f"\n[预算熔断] 本次运行已中止: {e}")
+    finally:
+        report = guard.get_report()
+        print("\n" + "=" * 60)
+        print("成本守卫报告（CostGuard）")
+        print("-" * 60)
+        print(f"  预算: ¥{report['budget_yuan']:.2f}")
+        print(f"  调用次数: {report['total_calls']}")
+        print(f"  输入 tokens: {report['total_prompt_tokens']:,}")
+        print(f"  输出 tokens: {report['total_completion_tokens']:,}")
+        print(f"  累计成本: ¥{report['total_cost_yuan']:.6f}")
+        if report["cost_by_node"]:
+            print(f"  按节点成本: {report['cost_by_node']}")
 
     print("\n" + "=" * 60)
     print("工作流执行完毕")

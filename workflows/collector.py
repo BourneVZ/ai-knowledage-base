@@ -1,7 +1,8 @@
 """Collector 节点 — 从 GitHub Search API 与 RSS 采集 AI 相关内容。
 
 信息源（并集）：
-- GitHub Search API（搜索词由 ``config.yaml`` 的 ``collection.github_search_query`` 决定）
+- GitHub Search API
+  （搜索词由 ``config.yaml`` 的 ``collection.github_search_query`` 决定）
 - RSS（源列表由 ``rss_sources.yaml`` 配置，每源/总量上限由 ``config.yaml`` 控制）
 
 产出报告式摘要（``title``/``url``/``description``/``stars`` 等），不携带原始全量响应。
@@ -20,6 +21,7 @@ from typing import Any
 from core.config import load_config
 from core.rss_sources import load_rss_sources
 from core.utils import parse_rss_items, strip_html
+from safeguards.security import sanitize_input
 from workflows.state import KBState
 
 logger = logging.getLogger(__name__)
@@ -51,6 +53,14 @@ MAX_RETRIES: int = 2
 
 DESCRIPTION_MAX_LENGTH: int = 300
 """RSS 描述最大长度（字符），截断过长描述以控制下游分析 prompt 体积。"""
+
+SANITIZED_FIELDS: tuple[str, ...] = ("title", "description")
+"""进入 LLM prompt 前需要清洗的外部自由文本字段。
+
+GitHub description / RSS title 等均为不受信外部输入，直接拼进 prompt 存在
+Prompt 注入风险（OWASP LLM Top 1）；url / stars / collected_at 等结构化
+事实字段不参与清洗。
+"""
 
 
 # ---------------------------------------------------------------------------
@@ -203,6 +213,29 @@ def _persist_raw(source_name: str, items: list[dict[str, Any]]) -> str:
     return f"knowledge/raw/{filename}"
 
 
+def _sanitize_sources(sources: list[dict[str, Any]]) -> None:
+    """对外部输入做注入检测与清洗（原地修改 ``title`` / ``description``）。
+
+    在原始数据落盘 *之后* 调用：``knowledge/raw/`` 保留原始记录（遵守
+    「raw 记录不可覆盖」约束），只有进入下游 LLM prompt 的工作副本被清洗。
+
+    Args:
+        sources: 采集结果列表（原地清洗）。
+    """
+    for source in sources:
+        for key in SANITIZED_FIELDS:
+            raw = str(source.get(key, "") or "")
+            cleaned, warnings = sanitize_input(raw)
+            if warnings:
+                logger.warning(
+                    "[Collector] 输入安全警告 (%s.%s): %s",
+                    source.get("source", ""),
+                    key,
+                    warnings,
+                )
+            source[key] = cleaned
+
+
 # ---------------------------------------------------------------------------
 # 节点定义
 # ---------------------------------------------------------------------------
@@ -239,5 +272,7 @@ def collect_node(state: KBState) -> dict[str, Any]:
         source["raw_path"] = rss_raw
 
     sources = github_sources + rss_sources
+    # 原始记录已落盘；此处清洗进入下游 LLM 的文本，阻断 Prompt 注入
+    _sanitize_sources(sources)
     logger.info("[Collector] 采集到 %d 条原始数据", len(sources))
     return {"sources": sources}

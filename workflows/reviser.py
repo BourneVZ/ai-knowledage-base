@@ -11,6 +11,7 @@ import logging
 from typing import Any
 
 from core.llm import accumulate_usage, chat_json
+from safeguards.cost_guard import BudgetExceededError
 from workflows.state import KBState, restore_factual_fields
 
 logger = logging.getLogger(__name__)
@@ -82,8 +83,12 @@ def revise_node(state: KBState) -> dict[str, Any]:
             temperature=REVISER_TEMPERATURE,
             timeout=REVISER_TIMEOUT,
             max_tokens=REVISER_MAX_TOKENS,
+            node_name="revise",
         )
         tracker = accumulate_usage(tracker, usage)
+    except BudgetExceededError:
+        # 预算熔断必须穿透，不能保留旧结果继续跑后续审核
+        raise
     except Exception as e:
         logger.warning("[Reviser] 修改失败，保留原 analyses: %s", e)
         return {"cost_tracker": tracker}

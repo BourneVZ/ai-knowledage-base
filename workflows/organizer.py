@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from core.utils import load_existing_urls, make_article_id, slugify
+from safeguards.security import filter_output
 from workflows.state import KBState
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,16 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MIN_INNOVATION_SCORE: int = 2
 """plan 未指定 min_innovation_score 时的创新分过滤阈值兜底值。"""
+
+MASKED_TEXT_FIELDS: tuple[str, ...] = ("summary", "description")
+"""落盘前需做 PII 掩码的文本字段。
+
+``summary`` 为 LLM 输出，``description`` 为外部原文，两者都会写入
+``knowledge/articles/`` 并可能被推送分发，统一在写盘前掩码。
+"""
+
+MASKED_LIST_FIELDS: tuple[str, ...] = ("key_points", "risks")
+"""落盘前需逐项做 PII 掩码的字符串列表字段（均为 LLM 输出）。"""
 
 
 # ---------------------------------------------------------------------------
@@ -47,6 +58,52 @@ def _to_float(value: object) -> float:
         except ValueError:
             return 0.0
     return 0.0
+
+
+def _mask_pii(articles: list[dict[str, Any]]) -> int:
+    """写盘前对 articles 的文本字段做 PII 检测与掩码（原地修改）。
+
+    LLM 输出（或外部描述原文）一旦夹带真实手机号/邮箱/身份证，随文件落盘
+    并推送 GitHub 即永久泄露，因此掩码必须发生在 ``_save_articles`` 之前。
+
+    Args:
+        articles: 待落盘的知识条目列表（原地掩码）。
+
+    Returns:
+        检出并掩码的 PII 处数。
+    """
+    hits = 0
+    for article in articles:
+        for key in MASKED_TEXT_FIELDS:
+            value = str(article.get(key, "") or "")
+            filtered, detections = filter_output(value)
+            if detections:
+                hits += len(detections)
+                logger.warning(
+                    "[Organizer] PII 掩码 (%s %s): %s",
+                    article.get("id", ""),
+                    key,
+                    detections,
+                )
+                article[key] = filtered
+        for key in MASKED_LIST_FIELDS:
+            items = article.get(key, [])
+            if not isinstance(items, list):
+                continue
+            masked_items: list[str] = []
+            for entry in items:
+                filtered, detections = filter_output(str(entry))
+                if detections:
+                    hits += len(detections)
+                    logger.warning(
+                        "[Organizer] PII 掩码 (%s %s[]): %s",
+                        article.get("id", ""),
+                        key,
+                        detections,
+                    )
+                masked_items.append(filtered)
+            article[key] = masked_items
+    return hits
 
 
 # ---------------------------------------------------------------------------
@@ -116,6 +173,11 @@ def organize_node(state: KBState) -> dict[str, Any]:
                 "risks": item.get("risks", []),
             }
         )
+
+    # 写盘前最后一道防线：PII 检测与掩码
+    pii_hits = _mask_pii(articles)
+    if pii_hits:
+        logger.warning("[Organizer] 写盘前共掩码 %d 处 PII", pii_hits)
 
     _save_articles(articles)
     logger.info(
