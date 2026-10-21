@@ -10,9 +10,16 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
+from pathlib import Path
 from typing import Any
 
-from pipeline.model_client import Usage, chat_with_retry
+# 支持 `python patterns/supervisor.py` 直接运行：脚本模式下 sys.path[0] 是脚本
+# 所在目录（patterns/），需额外加入项目根目录才能解析 `core.*`。
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from core.llm import Usage, chat_with_retry  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -154,8 +161,6 @@ def supervisor(task: str, max_retries: int = 3) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    import sys
-
     logging.basicConfig(
         level=logging.INFO,
         format="%(levelname)-8s | %(name)s | %(message)s",

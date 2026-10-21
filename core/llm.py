@@ -11,7 +11,7 @@
 
 用法::
 
-    from pipeline.model_client import quick_chat, chat_with_retry
+    from core.llm import quick_chat, chat_with_retry
 
     answer = quick_chat("什么是 RAG？")
     print(answer)
@@ -845,7 +845,7 @@ def quick_chat(prompt: str, *, model: str | None = None) -> str:
 
     Example::
 
-        >>> from pipeline.model_client import quick_chat
+        >>> from core.llm import quick_chat
         >>> answer = quick_chat("1+1 等于几？")
         >>> print(answer)
         2

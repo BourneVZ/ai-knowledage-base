@@ -10,7 +10,7 @@ import json
 import logging
 from typing import Any
 
-from pipeline.model_client import accumulate_usage, chat_json
+from core.llm import accumulate_usage, chat_json
 from workflows.state import KBState
 
 logger = logging.getLogger(__name__)

@@ -9,10 +9,10 @@ from __future__ import annotations
 import json
 import logging
 import os
-import re
 from datetime import datetime, timezone
 from typing import Any
 
+from core.utils import load_existing_urls, make_article_id, slugify
 from workflows.state import KBState
 
 logger = logging.getLogger(__name__)
@@ -49,69 +49,6 @@ def _to_float(value: object) -> float:
     return 0.0
 
 
-def _make_article_id(source: object, date_compact: str, index: int) -> str:
-    """生成符合项目规范的条目 ID（``{source}-{YYYYMMDD}-{NNN}``）。
-
-    来源段仅保留小写字母与下划线（匹配 ``hooks/validate_json.py`` 的
-    ``ID_PATTERN`` ``^[a-z_]+-\\d{8}-\\d{3}$``），``rss/xxx`` 会归一为 ``xxx``。
-
-    Args:
-        source: 数据来源值（如 ``"github"``、``"rss/hn"``）。
-        date_compact: ``YYYYMMDD`` 格式日期。
-        index: 序号（从 1 开始，零填充为 3 位）。
-
-    Returns:
-        格式为 ``{source}-{YYYYMMDD}-{NNN}`` 的 ID。
-    """
-    segment = re.sub(r"[^a-z_]", "", str(source or "").lower().replace("rss/", ""))
-    if not segment:
-        segment = "unknown"
-    return f"{segment}-{date_compact}-{index:03d}"
-
-
-def _slugify(text: str) -> str:
-    """将文本转换为文件名安全的小写 slug（仅 ASCII 字母/数字/连字符）。
-
-    Args:
-        text: 原始文本（如仓库名、标题）。
-
-    Returns:
-        仅含小写字母、数字和连字符的 slug（中文等非 ASCII 字符会被剔除）。
-    """
-    text = text.lower().strip()
-    text = re.sub(r"[^a-z0-9\s-]", "", text)
-    text = re.sub(r"[\s_]+", "-", text)
-    text = re.sub(r"-+", "-", text)
-    return text.strip("-")[:80]
-
-
-def _load_existing_urls(articles_dir: str) -> set[str]:
-    """扫描已有文章目录，提取所有 ``source_url`` 用于历史去重。
-
-    Args:
-        articles_dir: 知识条目目录路径。
-
-    Returns:
-        已存在的 ``source_url`` 集合。
-    """
-    existing: set[str] = set()
-    if not os.path.isdir(articles_dir):
-        return existing
-    for filename in os.listdir(articles_dir):
-        if not filename.endswith(".json"):
-            continue
-        filepath = os.path.join(articles_dir, filename)
-        try:
-            with open(filepath, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            url = data.get("source_url", "")
-            if isinstance(url, str) and url:
-                existing.add(url)
-        except (json.JSONDecodeError, OSError):
-            logger.warning("[Organizer] 跳过无法解析的已有文章: %s", filename)
-    return existing
-
-
 # ---------------------------------------------------------------------------
 # 节点定义
 # ---------------------------------------------------------------------------
@@ -145,7 +82,7 @@ def organize_node(state: KBState) -> dict[str, Any]:
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     articles_dir = os.path.join(base_dir, "knowledge", "articles")
-    seen = _load_existing_urls(articles_dir)
+    seen = load_existing_urls(articles_dir)
     unique: list[dict[str, Any]] = []
     for item in qualified:
         url = str(item.get("url", ""))
@@ -159,7 +96,7 @@ def organize_node(state: KBState) -> dict[str, Any]:
     for i, item in enumerate(unique):
         articles.append(
             {
-                "id": _make_article_id(item.get("source"), date_compact, i + 1),
+                "id": make_article_id(item.get("source"), date_compact, i + 1),
                 "title": item.get("title", ""),
                 "source": item.get("source", ""),
                 "source_url": item.get("url", ""),
@@ -206,7 +143,8 @@ def _save_articles(articles: list[dict[str, Any]]) -> None:
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     for article in articles:
         title = article.get("title", "")
-        slug = _slugify(str(title)) if title else "unknown"
+        slug = slugify(str(title)) if title else "unknown"
+        slug = slug or "unknown"
         source = str(article.get("source", "unknown")).replace("/", "_")
         filename = f"{date_str}-{source}-{slug}.json"
         filepath = os.path.join(articles_dir, filename)

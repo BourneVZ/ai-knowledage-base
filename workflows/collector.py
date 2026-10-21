@@ -12,14 +12,14 @@ from __future__ import annotations
 import json
 import logging
 import os
-import re
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from typing import Any
 
-from pipeline.config import load_config
-from pipeline.rss_sources import load_rss_sources
+from core.config import load_config
+from core.rss_sources import load_rss_sources
+from core.utils import parse_rss_items, strip_html
 from workflows.state import KBState
 
 logger = logging.getLogger(__name__)
@@ -154,7 +154,7 @@ def _collect_rss(per_source_limit: int, total_limit: int) -> list[dict[str, Any]
             logger.error("[Collector] RSS 源 %s 请求失败: %s", name, e)
             continue
         per_source_count = 0
-        for item in _parse_rss_items(xml_text):
+        for item in parse_rss_items(xml_text):
             if len(sources) >= total_limit or per_source_count >= per_source_limit:
                 break
             title = item.get("title", "")
@@ -166,7 +166,7 @@ def _collect_rss(per_source_limit: int, total_limit: int) -> list[dict[str, Any]
                     "source": f"rss/{name}",
                     "title": title,
                     "url": link,
-                    "description": _strip_html(item.get("description", ""))[
+                    "description": strip_html(item.get("description", ""))[
                         :DESCRIPTION_MAX_LENGTH
                     ],
                     "stars": None,
@@ -175,43 +175,6 @@ def _collect_rss(per_source_limit: int, total_limit: int) -> list[dict[str, Any]
             )
             per_source_count += 1
     return sources
-
-
-def _parse_rss_items(xml_text: str) -> list[dict[str, str]]:
-    """用正则从 RSS XML 中提取所有 ``<item>`` 块的标题/链接/描述。"""
-    items: list[dict[str, str]] = []
-    item_blocks = re.findall(r"<item>(.*?)</item>", xml_text, re.DOTALL)
-    for block in item_blocks:
-        title_match = re.search(r"<title>(.*?)</title>", block, re.DOTALL)
-        link_match = re.search(r"<link>(.*?)</link>", block, re.DOTALL)
-        desc_match = re.search(r"<description>(.*?)</description>", block, re.DOTALL)
-        items.append(
-            {
-                "title": _decode_xml(title_match.group(1).strip())
-                if title_match
-                else "",
-                "link": link_match.group(1).strip() if link_match else "",
-                "description": _decode_xml(desc_match.group(1).strip())
-                if desc_match
-                else "",
-            }
-        )
-    return items
-
-
-def _decode_xml(text: str) -> str:
-    """简易 XML 实体解码（CDATA + 常见实体）。"""
-    cdata_match = re.match(r"<!\[CDATA\[(.*?)\]\]>", text, re.DOTALL)
-    if cdata_match:
-        text = cdata_match.group(1)
-    text = text.replace("&lt;", "<").replace("&gt;", ">")
-    text = text.replace("&amp;", "&").replace("&quot;", '"').replace("&apos;", "'")
-    return text
-
-
-def _strip_html(text: str) -> str:
-    """去除 HTML 标签。"""
-    return re.sub(r"<[^>]*>", "", text).strip()
 
 
 # ---------------------------------------------------------------------------

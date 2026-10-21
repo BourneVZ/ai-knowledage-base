@@ -29,20 +29,21 @@ from urllib.parse import quote_plus
 
 import httpx
 
-try:
-    from .model_client import chat_with_retry, tracker  # type: ignore[assignment]
-except ImportError:
-    from model_client import chat_with_retry, tracker  # type: ignore[no-redef]
+# 支持 `python pipeline/pipeline.py` 直接运行：脚本模式下 sys.path[0] 是脚本所在
+# 目录（pipeline/），需额外加入项目根目录才能解析 `core.*`。
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-try:
-    from .rss_sources import load_rss_sources  # type: ignore[assignment]
-except ImportError:
-    from rss_sources import load_rss_sources  # type: ignore[no-redef]
-
-try:
-    from .config import load_config, resolve_plan  # type: ignore[assignment]
-except ImportError:
-    from config import load_config, resolve_plan  # type: ignore[no-redef]
+from core.config import load_config, resolve_plan  # noqa: E402
+from core.llm import chat_with_retry, tracker  # noqa: E402
+from core.rss_sources import load_rss_sources  # noqa: E402
+from core.utils import (  # noqa: E402
+    load_existing_urls,
+    make_article_id,
+    parse_rss_items,
+    slugify,
+    strip_html,
+)
 
 # ---------------------------------------------------------------------------
 # 日志
@@ -152,36 +153,6 @@ class AnalyzedItem(TypedDict, total=False):
 # ---------------------------------------------------------------------------
 
 
-def _slugify(text: str) -> str:
-    """将文本转换为文件名安全的小写 slug。
-
-    Args:
-        text: 原始文本（如仓库名、标题）。
-
-    Returns:
-        仅含小写字母、数字和连字符的 slug。
-    """
-    text = text.lower().strip()
-    text = re.sub(r"[^\w\s-]", "", text)
-    text = re.sub(r"[\s_]+", "-", text)
-    text = re.sub(r"-+", "-", text)
-    return text.strip("-")[:80]
-
-
-def _make_article_id(source: str, date_str: str, index: int) -> str:
-    """生成符合规范的知识条目 ID。
-
-    Args:
-        source: 数据来源（如 ``github``、``rss``）。
-        date_str: 日期字符串（``YYYYMMDD`` 格式）。
-        index: 序号（从 1 开始的 3 位零填充）。
-
-    Returns:
-        格式为 ``{source}-{YYYYMMDD}-{NNN}`` 的 ID。
-    """
-    return f"{source}-{date_str}-{index:03d}"
-
-
 def _now_iso() -> str:
     """获取当前东八区时间戳（ISO 8601 格式）。
 
@@ -207,33 +178,6 @@ def _today_str_compact() -> str:
         格式为 ``YYYYMMDD`` 的日期。
     """
     return datetime.now(timezone(timedelta(hours=8))).strftime("%Y%m%d")
-
-
-def _load_existing_urls(articles_dir: Path) -> set[str]:
-    """扫描已有文章目录，提取所有 ``source_url`` 用于去重。
-
-    Args:
-        articles_dir: 知识条目目录路径。
-
-    Returns:
-        已存在的 ``source_url`` 集合。
-    """
-    existing: set[str] = set()
-    if not articles_dir.is_dir():
-        return existing
-    for fpath in articles_dir.glob("*.json"):
-        try:
-            data = json.loads(fpath.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            logger.warning("跳过无法解析的已有文章: %s", fpath)
-            continue
-        if not isinstance(data, dict):
-            logger.debug("跳过非文章对象文件: %s", fpath)
-            continue
-        url = data.get("source_url", "")
-        if isinstance(url, str) and url:
-            existing.add(url)
-    return existing
 
 
 # ---------------------------------------------------------------------------
@@ -446,7 +390,7 @@ def collect_rss(
             logger.error("RSS 源 %s 请求失败: %s", name, e)
             continue
 
-        items = _parse_rss_items(resp_text)
+        items = parse_rss_items(resp_text)
         logger.info("RSS %s 解析出 %d 条条目", name, len(items))
 
         per_source_count = 0
@@ -463,7 +407,7 @@ def collect_rss(
                     title=title,
                     url=link,
                     source=f"rss/{name}",
-                    description=_strip_html(description)[:DESCRIPTION_MAX_LENGTH],
+                    description=strip_html(description)[:DESCRIPTION_MAX_LENGTH],
                     metadata={
                         "rss_source": name,
                         "pub_date": item.get("pub_date", ""),
@@ -475,70 +419,6 @@ def collect_rss(
 
     logger.info("RSS 采集完成，共 %d 条", len(results))
     return results
-
-
-def _parse_rss_items(xml_text: str) -> list[dict[str, str]]:
-    """使用正则从 RSS XML 中提取所有 ``<item>`` 标签内容。
-
-    不依赖 XML 库，针对 RSS 2.0 常见结构做容错解析。
-
-    Args:
-        xml_text: RSS 2.0 XML 原始文本。
-
-    Returns:
-        解析后的条目列表，每项含 ``title``、``link``、``description``、``pub_date``。
-    """
-    items: list[dict[str, str]] = []
-    item_blocks = re.findall(r"<item>(.*?)</item>", xml_text, re.DOTALL)
-    for block in item_blocks:
-        title_match = re.search(r"<title>(.*?)</title>", block, re.DOTALL)
-        link_match = re.search(r"<link>(.*?)</link>", block, re.DOTALL)
-        desc_match = re.search(r"<description>(.*?)</description>", block, re.DOTALL)
-        pub_match = re.search(r"<pubDate>(.*?)</pubDate>", block, re.DOTALL)
-        items.append(
-            {
-                "title": _decode_xml(title_match.group(1).strip())
-                if title_match
-                else "",
-                "link": link_match.group(1).strip() if link_match else "",
-                "description": _decode_xml(desc_match.group(1).strip())
-                if desc_match
-                else "",
-                "pub_date": pub_match.group(1).strip() if pub_match else "",
-            }
-        )
-    return items
-
-
-def _decode_xml(text: str) -> str:
-    """简易 XML 实体解码。
-
-    仅处理 ``<![CDATA[...]]>`` 块和常见 XML 实体。
-
-    Args:
-        text: 可能包含 XML 实体或 CDATA 的文本。
-
-    Returns:
-        解码后的纯文本。
-    """
-    cdata_match = re.match(r"<!\[CDATA\[(.*?)\]\]>", text, re.DOTALL)
-    if cdata_match:
-        text = cdata_match.group(1)
-    text = text.replace("&lt;", "<").replace("&gt;", ">")
-    text = text.replace("&amp;", "&").replace("&quot;", '"').replace("&apos;", "'")
-    return text
-
-
-def _strip_html(text: str) -> str:
-    """简易去除 HTML 标签。
-
-    Args:
-        text: 可能含 HTML 的文本。
-
-    Returns:
-        去除标签后的纯文本。
-    """
-    return re.sub(r"<[^>]*>", "", text).strip()
 
 
 # ===================================================================
@@ -628,7 +508,7 @@ def analyze_items(
 
         results.append(
             AnalyzedItem(
-                id=_make_article_id(base_source, date_compact, idx + 1),
+                id=make_article_id(base_source, date_compact, idx + 1),
                 title=item["title"],
                 source=source,
                 source_url=item["url"],
@@ -714,7 +594,7 @@ def _analyze_placeholder(item: CollectedItem) -> AnalyzedItem:
     date_compact = _today_str_compact()
     base_source = item["source"].replace("rss/", "")
     return AnalyzedItem(
-        id=_make_article_id(base_source, date_compact, 0),
+        id=make_article_id(base_source, date_compact, 0),
         title=item["title"],
         source=item["source"],
         source_url=item["url"],
@@ -804,7 +684,7 @@ def organize_items(
     Returns:
         整理后的条目列表。
     """
-    seen_urls = _load_existing_urls(articles_dir)
+    seen_urls = load_existing_urls(articles_dir)
     deduped: list[AnalyzedItem] = []
     skipped = 0
 
@@ -923,7 +803,8 @@ def save_items(
     saved = 0
     for item in items:
         title = item.get("title", "unknown")
-        slug = _slugify(title) if title else "unknown"
+        slug = slugify(title) if title else "unknown"
+        slug = slug or "unknown"
         source = item.get("source", "unknown").replace("/", "_")
         filename = f"{date_str}-{source}-{slug}.json"
         filepath = ARTICLES_DIR / filename

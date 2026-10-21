@@ -107,6 +107,11 @@ class CostGuard:
 
 # --- 测试入口 ---
 if __name__ == "__main__":
+    import sys
+
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
     print("=== 测试 1：成本追踪 ===")
     guard = CostGuard(budget_yuan=1.0)
     guard.record("collect", {"prompt_tokens": 100, "completion_tokens": 50})
