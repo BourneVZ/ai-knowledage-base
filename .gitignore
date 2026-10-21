@@ -9,3 +9,6 @@ dist/
 build/
 .venv/
 venv/
+
+# 运行日志（不入库）
+*.log
