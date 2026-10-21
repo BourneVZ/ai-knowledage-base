@@ -107,6 +107,7 @@ def organize_node(state: KBState) -> dict[str, Any]:
                 "status": "draft",
                 "stars": item.get("stars"),
                 "collected_at": item.get("collected_at", ""),
+                "raw_path": item.get("raw_path", ""),
                 "analyzed_at": analyzed_at,
                 "published_at": None,
                 "innovation_score": item.get("innovation_score"),

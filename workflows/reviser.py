@@ -11,7 +11,7 @@ import logging
 from typing import Any
 
 from core.llm import accumulate_usage, chat_json
-from workflows.state import KBState
+from workflows.state import KBState, restore_factual_fields
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,24 @@ def revise_node(state: KBState) -> dict[str, Any]:
         logger.warning("[Reviser] 修改结果不是 JSON 数组，保留原 analyses")
         return {"cost_tracker": tracker}
 
-    revised = [i for i in improved if isinstance(i, dict)]
+    improved_by_url: dict[str, dict[str, Any]] = {}
+    improved_by_title: dict[str, dict[str, Any]] = {}
+    for item in improved:
+        if isinstance(item, dict):
+            improved_by_url.setdefault(str(item.get("url", "")), item)
+            improved_by_title.setdefault(str(item.get("title", "")), item)
+
+    revised: list[dict[str, Any]] = []
+    for original in analyses:
+        match = improved_by_url.get(str(original.get("url", "")))
+        if match is None:
+            match = improved_by_title.get(str(original.get("title", "")))
+        if match is None:
+            # LLM 漏改该条目，保留原样，避免数据丢失
+            revised.append(original)
+            continue
+        revised.append(restore_factual_fields(dict(match), original))
+
     if not revised:
         logger.warning("[Reviser] 修改结果无有效条目，保留原 analyses")
         return {"cost_tracker": tracker}

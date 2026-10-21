@@ -11,7 +11,7 @@ import logging
 from typing import Any
 
 from core.llm import accumulate_usage, chat_json
-from workflows.state import KBState
+from workflows.state import KBState, restore_factual_fields
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ def analyze_node(state: KBState) -> dict[str, Any]:
         try:
             result, usage = chat_json(prompt)
             tracker = accumulate_usage(tracker, usage)
-            analyses.append({**item, **result})
+            analyses.append(restore_factual_fields({**item, **result}, item))
         except Exception as e:
             logger.error("[Analyzer] 分析失败: %s - %s", title, e)
             analyses.append(

@@ -177,6 +177,32 @@ def _collect_rss(per_source_limit: int, total_limit: int) -> list[dict[str, Any]
     return sources
 
 
+def _persist_raw(source_name: str, items: list[dict[str, Any]]) -> str:
+    """将原始采集数据落盘到 ``knowledge/raw/``，返回相对 ``raw_path``。
+
+    文件名带时间戳，避免同日多次采集互相覆盖（遵守「禁止覆盖 raw 记录」约束）。
+
+    Args:
+        source_name: 来源标识（``github``、``rss``）。
+        items: 该来源采集到的原始条目列表。
+
+    Returns:
+        相对项目根目录的 ``raw_path`` 字符串。
+    """
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    raw_dir = os.path.join(base_dir, "knowledge", "raw")
+    os.makedirs(raw_dir, exist_ok=True)
+
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M%S")
+    filename = f"{source_name}-{stamp}.json"
+    filepath = os.path.join(raw_dir, filename)
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(items, f, ensure_ascii=False, indent=2)
+
+    logger.info("[Collector] 原始数据已落盘: %s (%d 条)", filename, len(items))
+    return f"knowledge/raw/{filename}"
+
+
 # ---------------------------------------------------------------------------
 # 节点定义
 # ---------------------------------------------------------------------------
@@ -201,8 +227,17 @@ def collect_node(state: KBState) -> dict[str, Any]:
     rss_per_source = int(coll.get("rss_per_source_limit", DEFAULT_RSS_PER_SOURCE_LIMIT))
     rss_total = int(coll.get("rss_total_limit", DEFAULT_RSS_TOTAL_LIMIT))
 
-    sources = _collect_github(github_query, github_limit)
-    sources += _collect_rss(rss_per_source, rss_total)
+    github_sources = _collect_github(github_query, github_limit)
+    rss_sources = _collect_rss(rss_per_source, rss_total)
 
+    # 分来源落盘原始采集记录，并回填 raw_path（AGENTS.md 必填字段）
+    github_raw = _persist_raw("github", github_sources)
+    rss_raw = _persist_raw("rss", rss_sources)
+    for source in github_sources:
+        source["raw_path"] = github_raw
+    for source in rss_sources:
+        source["raw_path"] = rss_raw
+
+    sources = github_sources + rss_sources
     logger.info("[Collector] 采集到 %d 条原始数据", len(sources))
     return {"sources": sources}

@@ -68,3 +68,38 @@ class KBState(TypedDict):
     cost_tracker: dict[str, Any]
     # Token 用量追踪 — 累加统计，约定 key：
     # {"prompt_tokens": int, "completion_tokens": int, "total_cost_yuan": float}
+
+
+FACTUAL_FIELDS: tuple[str, ...] = (
+    "source",
+    "title",
+    "url",
+    "description",
+    "stars",
+    "collected_at",
+    "raw_path",
+)
+"""分析条目中由采集阶段确定、LLM 不得篡改的事实字段。
+
+analyzer/reviser 在合并 LLM 输出时必须用原始值回填这些字段，防止模型伪造
+``collected_at``、``stars`` 等事实数据。
+"""
+
+
+def restore_factual_fields(
+    merged: dict[str, Any], factual: dict[str, Any]
+) -> dict[str, Any]:
+    """用采集阶段的原始值回填事实字段，禁止 LLM 篡改。
+
+    Args:
+        merged: LLM 输出或已合并的字典（原地修改）。
+        factual: 采集阶段的事实字典（含 ``title``/``url``/``stars``/
+            ``collected_at`` 等）。
+
+    Returns:
+        回填事实字段后的同一字典（便于链式使用）。
+    """
+    for field in FACTUAL_FIELDS:
+        if field in factual:
+            merged[field] = factual[field]
+    return merged
