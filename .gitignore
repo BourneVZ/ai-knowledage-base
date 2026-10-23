@@ -12,3 +12,19 @@ venv/
 
 # 运行日志（不入库）
 *.log
+
+# macOS 系统文件（不入库）
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Icon?
+.Spotlight-V100
+.Trashes
+
+# Windows 系统文件（不入库）
+Thumbs.db
+desktop.ini
+
+# 嵌套的独立 git 仓库（不入库）
+v4-production/
