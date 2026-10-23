@@ -190,7 +190,9 @@ def _save_articles(articles: list[dict[str, Any]]) -> None:
     """将知识条目写入 ``knowledge/articles/`` 并更新 ``index.json``。
 
     每篇文章写为 ``{date}-{source}-{slug}.json``（与 V2/Agent 命名一致），
-    同时维护 ``index.json``（记录 id/title/category，按 id 去重追加）。
+    同时维护 ``knowledge/articles/index.json``（Bot 检索入口，按 ``file``
+    文件名去重——同文件重跑时刷新条目，含 ``file`` 字段以便按需读取全文，
+    按 ``collected_at`` 降序排序保证最新内容在前）。
 
     Args:
         articles: 已格式化的知识条目列表。
@@ -204,6 +206,7 @@ def _save_articles(articles: list[dict[str, Any]]) -> None:
     os.makedirs(articles_dir, exist_ok=True)
 
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    saved_files: list[tuple[dict[str, Any], str]] = []
     for article in articles:
         title = article.get("title", "")
         slug = slugify(str(title)) if title else "unknown"
@@ -213,32 +216,38 @@ def _save_articles(articles: list[dict[str, Any]]) -> None:
         filepath = os.path.join(articles_dir, filename)
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(article, f, ensure_ascii=False, indent=2)
+        saved_files.append((article, filename))
 
-    index_path = os.path.join(base_dir, "knowledge", "index.json")
+    index_path = os.path.join(articles_dir, "index.json")
     index: list[dict[str, Any]] = []
     if os.path.exists(index_path):
         try:
             with open(index_path, "r", encoding="utf-8") as f:
                 loaded = json.load(f)
             if isinstance(loaded, list):
-                index = loaded
+                index = [e for e in loaded if isinstance(e, dict)]
         except (json.JSONDecodeError, OSError) as e:
             logger.warning("[Organizer] 索引读取失败，重建: %s", e)
 
-    existing_ids = {e.get("id") for e in index if isinstance(e, dict)}
-    for article in articles:
-        aid = article.get("id")
-        if aid not in existing_ids:
-            index.append(
-                {
-                    "id": aid,
-                    "title": article.get("title", ""),
-                    "category": article.get("category", ""),
-                }
-            )
-            existing_ids.add(aid)
+    existing_files = {e.get("file") for e in index}
+    for article, filename in saved_files:
+        entry = {
+            "id": article.get("id"),
+            "file": filename,
+            "title": article.get("title", ""),
+            "category": article.get("category", ""),
+            "tags": article.get("tags", []),
+            "collected_at": article.get("collected_at", ""),
+            "innovation_score": article.get("innovation_score"),
+            "stars": article.get("stars"),
+        }
+        if filename in existing_files:
+            index = [e for e in index if e.get("file") != filename]
+        index.append(entry)
+        existing_files.add(filename)
 
+    index.sort(key=lambda e: str(e.get("collected_at", "")), reverse=True)
     with open(index_path, "w", encoding="utf-8") as f:
         json.dump(index, f, ensure_ascii=False, indent=2)
 
-    logger.info("[Organizer] 保存 %d 篇文章", len(articles))
+    logger.info("[Organizer] 保存 %d 篇文章，索引共 %d 条", len(articles), len(index))
