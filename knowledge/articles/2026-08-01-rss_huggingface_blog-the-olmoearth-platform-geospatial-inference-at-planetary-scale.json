@@ -32,7 +32,7 @@
     "海量数据处理计算成本极高",
     "多源地理空间数据对齐与标注困难"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-01.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-01.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Tue, 28 Jul 2026 16:27:42 GMT"

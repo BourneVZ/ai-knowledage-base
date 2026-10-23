@@ -33,7 +33,7 @@
     "依赖OpenAI闭源模型导致的可审计性与合规风险",
     "金融领域高确定性需求与LLM概率性输出间的张力"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-11.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-11.json",
   "metadata": {
     "rss_source": "openai_blog",
     "pub_date": "Tue, 07 Jul 2026 00:00:00 GMT"

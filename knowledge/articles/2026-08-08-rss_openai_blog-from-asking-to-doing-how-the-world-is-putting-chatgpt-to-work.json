@@ -32,7 +32,7 @@
     "数据局限于OpenAI自身生态缺乏跨平台对比",
     "宏观数据难以反映具体垂直领域的深度应用效果"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-08.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-08.json",
   "metadata": {
     "rss_source": "openai_blog",
     "pub_date": "Thu, 06 Aug 2026 00:00:00 GMT"

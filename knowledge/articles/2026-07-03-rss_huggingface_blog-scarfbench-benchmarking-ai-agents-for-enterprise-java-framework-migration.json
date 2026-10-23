@@ -33,7 +33,7 @@
     "依赖特定 Java 生态演进，泛化性受限",
     "评估结果易受目标框架版本与配置差异影响"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Tue, 30 Jun 2026 18:32:50 GMT"

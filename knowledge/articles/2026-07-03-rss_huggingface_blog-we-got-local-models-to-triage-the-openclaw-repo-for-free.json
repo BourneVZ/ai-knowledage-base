@@ -32,7 +32,7 @@
     "小模型在复杂代码语义理解上存在准确率瓶颈",
     "缺乏标准化评估基准，效果依赖人工校验"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Mon, 22 Jun 2026 00:00:00 GMT"

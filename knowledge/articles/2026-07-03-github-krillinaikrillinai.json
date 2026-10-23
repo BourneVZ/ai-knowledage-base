@@ -33,7 +33,7 @@
     "依赖第三方 ASR/TTS 服务导致质量与延迟不确定性",
     "多语言 TTS 口型同步与情感一致性尚未公开验证"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "stars": 10441,
     "language": "Go",

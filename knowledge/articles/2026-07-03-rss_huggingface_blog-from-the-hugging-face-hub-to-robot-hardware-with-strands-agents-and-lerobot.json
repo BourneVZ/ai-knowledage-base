@@ -33,7 +33,7 @@
     "依赖特定机器人中间件（如 ROS2），兼容性受限",
     "真实场景泛化能力受训练数据覆盖度制约"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Wed, 17 Jun 2026 10:18:05 GMT"

@@ -32,7 +32,7 @@
     "硬件资源需求高，部署门槛显著提升",
     "长程任务评估基准尚不统一，实际泛化能力待验证"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Wed, 17 Jun 2026 09:01:25 GMT"

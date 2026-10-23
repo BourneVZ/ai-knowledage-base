@@ -33,7 +33,7 @@
     "CPU推理性能上限受限",
     "长上下文生态支持待完善"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-01.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-01.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Tue, 28 Jul 2026 15:01:45 GMT"

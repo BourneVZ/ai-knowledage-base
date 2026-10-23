@@ -32,7 +32,7 @@
     "边缘设备算力限制可能影响复杂场景表现",
     "3B参数量在极端多模态任务上存在能力上限"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-15.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-15.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Wed, 12 Aug 2026 14:00:51 GMT"

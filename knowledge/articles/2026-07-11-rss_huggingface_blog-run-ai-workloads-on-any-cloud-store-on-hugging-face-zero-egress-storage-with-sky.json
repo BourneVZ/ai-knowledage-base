@@ -33,7 +33,7 @@
     "依赖 Hugging Face Hub 服务稳定性与访问策略",
     "多云权限与网络配置复杂度较高"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-11.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-11.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Tue, 07 Jul 2026 00:00:00 GMT"

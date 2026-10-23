@@ -32,7 +32,7 @@
     "极端量化可能导致细微图像质量损失",
     "依赖特定硬件算子支持"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-25.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-25.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Thu, 23 Jul 2026 00:00:00 GMT"

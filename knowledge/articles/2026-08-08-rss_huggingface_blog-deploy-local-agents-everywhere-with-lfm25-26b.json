@@ -32,7 +32,7 @@
     "小模型复杂推理能力受限",
     "端侧算力对长上下文支持有限"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-08.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-08.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Tue, 04 Aug 2026 13:58:29 GMT"

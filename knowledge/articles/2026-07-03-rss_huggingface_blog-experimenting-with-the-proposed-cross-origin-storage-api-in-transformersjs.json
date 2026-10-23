@@ -33,7 +33,7 @@
     "当前Storage API仍处于W3C草案阶段，浏览器支持不均衡",
     "跨域策略与现有IndexedDB缓存逻辑存在迁移复杂性"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Tue, 23 Jun 2026 00:00:00 GMT"

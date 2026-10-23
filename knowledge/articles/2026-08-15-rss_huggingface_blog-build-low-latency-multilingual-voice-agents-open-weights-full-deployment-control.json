@@ -33,7 +33,7 @@
     "对高性能 GPU 硬件资源要求较高",
     "多语言混合场景下的语音稳定性待验证"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-15.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-15.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Mon, 10 Aug 2026 16:25:36 GMT"

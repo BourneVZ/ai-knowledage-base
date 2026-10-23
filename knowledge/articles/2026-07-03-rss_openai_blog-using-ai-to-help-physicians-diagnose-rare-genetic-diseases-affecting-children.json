@@ -32,7 +32,7 @@
     "依赖高质量标注临床数据",
     "模型可解释性与临床信任瓶颈"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "openai_blog",
     "pub_date": "Thu, 18 Jun 2026 08:00:00 GMT"

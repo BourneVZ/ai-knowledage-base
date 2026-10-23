@@ -33,7 +33,7 @@
     "依赖 Hugging Face 平台生态，可移植性受限",
     "不支持复杂多模型流水线或自定义 CUDA 内核"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Fri, 26 Jun 2026 00:00:00 GMT"

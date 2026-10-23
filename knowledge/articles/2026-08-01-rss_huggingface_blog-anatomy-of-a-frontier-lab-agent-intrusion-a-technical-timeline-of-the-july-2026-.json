@@ -33,7 +33,7 @@
     "案例细节可能涉及敏感安全信息，存在被恶意利用的风险",
     "特定攻击手法可能随模型迭代而快速失效，普适性受限"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-01.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-01.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Mon, 27 Jul 2026 00:00:00 GMT"

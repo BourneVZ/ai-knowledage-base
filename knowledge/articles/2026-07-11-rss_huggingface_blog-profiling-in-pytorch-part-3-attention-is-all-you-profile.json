@@ -33,7 +33,7 @@
     "依赖特定GPU架构与PyTorch版本",
     "需熟悉底层CUDA和Transformer实现细节"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-11.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-11.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Fri, 10 Jul 2026 00:00:00 GMT"

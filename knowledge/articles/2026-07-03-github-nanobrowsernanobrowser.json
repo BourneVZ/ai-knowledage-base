@@ -33,7 +33,7 @@
     "依赖 LLM 推理稳定性，易受提示漂移影响",
     "复杂动态网页交互的泛化能力有限"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "stars": 13402,
     "language": "TypeScript",

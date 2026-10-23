@@ -32,7 +32,7 @@
     "复杂任务中可能损失部分推理精度",
     "需针对特定模型进行适配与调优"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-15.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-15.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Tue, 11 Aug 2026 13:37:10 GMT"

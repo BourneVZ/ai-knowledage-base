@@ -33,7 +33,7 @@
     "复杂 Agent 编排能力弱于专业框架（如 LangChain/LlamaIndex）",
     "WebUI 功能相对基础，缺乏可视化调试与可观测性"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "stars": 10204,
     "language": "Rust",

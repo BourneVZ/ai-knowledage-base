@@ -32,7 +32,7 @@
     "极致压缩成本可能导致复杂任务性能下降",
     "大规模部署带来的数据安全风险"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-01.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-01.json",
   "metadata": {
     "rss_source": "openai_blog",
     "pub_date": "Thu, 30 Jul 2026 10:00:00 GMT"

@@ -33,7 +33,7 @@
     "依赖Cloudflare专有AI运行时，模型可移植性受限",
     "D1事务能力与Vectorize动态索引更新机制尚不成熟"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-04.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-04.json",
   "metadata": {
     "rss_source": "lobsters_ai",
     "pub_date": "Fri, 03 Jul 2026 10:26:27 -0500"

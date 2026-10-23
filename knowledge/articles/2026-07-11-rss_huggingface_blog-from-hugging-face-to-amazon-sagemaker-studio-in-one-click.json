@@ -33,7 +33,7 @@
     "依赖 AWS 和 Hugging Face 服务可用性",
     "私有模型或自定义训练脚本支持有限"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-11.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-11.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Tue, 07 Jul 2026 21:15:33 GMT"

@@ -32,7 +32,7 @@
     "部分低资源语言实际部署精度仍受限于训练数据质量",
     "多语言共享词表可能导致语义歧义与识别混淆"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Mon, 22 Jun 2026 13:18:56 GMT"

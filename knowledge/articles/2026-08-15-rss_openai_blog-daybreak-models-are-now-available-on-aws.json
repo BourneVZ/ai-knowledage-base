@@ -32,7 +32,7 @@
     "模型幻觉可能导致安全误报",
     "高度依赖单一云厂商生态"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-15.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-15.json",
   "metadata": {
     "rss_source": "openai_blog",
     "pub_date": "Tue, 11 Aug 2026 10:00:00 GMT"

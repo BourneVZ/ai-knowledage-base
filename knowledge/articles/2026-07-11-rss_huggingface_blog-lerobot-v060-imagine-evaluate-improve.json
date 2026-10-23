@@ -33,7 +33,7 @@
     "真实硬件部署泛化性待验证",
     "依赖高质量仿真与多模态对齐数据"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-11.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-11.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Tue, 07 Jul 2026 00:00:00 GMT"

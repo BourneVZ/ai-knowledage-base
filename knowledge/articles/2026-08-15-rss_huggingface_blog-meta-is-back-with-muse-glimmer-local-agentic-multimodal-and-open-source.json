@@ -32,7 +32,7 @@
     "本地部署对硬件算力要求较高",
     "多模态智能体的稳定性仍需验证"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-08-15.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-08-15.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Mon, 10 Aug 2026 00:00:00 GMT"

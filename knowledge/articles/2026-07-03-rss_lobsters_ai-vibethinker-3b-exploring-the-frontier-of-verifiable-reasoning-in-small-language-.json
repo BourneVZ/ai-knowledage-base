@@ -32,7 +32,7 @@
     "验证模块带来额外推理开销",
     "在复杂多跳推理任务上泛化能力待验证"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "lobsters_ai",
     "pub_date": "Tue, 23 Jun 2026 09:17:13 -0500"

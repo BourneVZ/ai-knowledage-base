@@ -32,7 +32,7 @@
     "高度依赖高质量安全知识微调数据，泛化能力存疑",
     "在零日漏洞检测等未知威胁场景中可靠性尚未公开验证"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "openai_blog",
     "pub_date": "Mon, 22 Jun 2026 10:00:00 GMT"

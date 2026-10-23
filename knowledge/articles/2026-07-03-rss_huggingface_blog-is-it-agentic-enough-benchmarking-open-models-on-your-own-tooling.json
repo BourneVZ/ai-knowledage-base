@@ -33,7 +33,7 @@
     "评测结果高度依赖工具实现质量与环境一致性",
     "缺乏标准化任务定义导致跨研究不可比"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Thu, 18 Jun 2026 00:00:00 GMT"

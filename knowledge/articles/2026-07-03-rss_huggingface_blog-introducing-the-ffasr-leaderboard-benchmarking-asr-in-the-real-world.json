@@ -32,7 +32,7 @@
     "真实语音数据标注成本高、覆盖度有限",
     "领域偏移导致跨场景泛化评估不充分"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Wed, 24 Jun 2026 00:00:00 GMT"

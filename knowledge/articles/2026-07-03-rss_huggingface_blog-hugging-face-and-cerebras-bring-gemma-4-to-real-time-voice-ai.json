@@ -33,7 +33,7 @@
     "依赖专有硬件（CS-3）限制通用性",
     "Gemma 4 官方尚未公开，技术细节与许可存不确定性"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "rss_source": "huggingface_blog",
     "pub_date": "Wed, 01 Jul 2026 00:00:00 GMT"

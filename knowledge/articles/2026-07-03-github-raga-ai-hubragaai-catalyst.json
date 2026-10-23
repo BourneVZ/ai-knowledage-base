@@ -33,7 +33,7 @@
     "依赖用户正确注入追踪钩子，集成成本较高",
     "高级分析功能对大规模并发 trace 的性能未公开验证"
   ],
-  "raw_path": "/home/runner/work/ai-knowledage-base/ai-knowledage-base/knowledge/raw/all-2026-07-03.json",
+  "raw_path": "/home/runner/work/ai-knowledge-base/ai-knowledge-base/knowledge/raw/all-2026-07-03.json",
   "metadata": {
     "stars": 16142,
     "language": "Python",
